@@ -1,0 +1,618 @@
+<div class="sddr-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-box">🌾</div>
+      <div>
+        <span class="logo-name">AgriSuivi</span>
+        <span class="logo-sub">Directeur SDDR</span>
+      </div>
+    </div>
+
+    <div class="nav-section">Navigation</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" [class.active]="ongletActif==='accueil'" (click)="changerOnglet('accueil')">
+        <i class="fas fa-home"></i><span>Dashboard</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='agriculteurs'" (click)="changerOnglet('agriculteurs')">
+        <i class="fas fa-users"></i><span>Agriculteurs</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='parcelles'" (click)="changerOnglet('parcelles')">
+        <i class="fas fa-map"></i><span>Parcelles</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='cultures'" (click)="changerOnglet('cultures')">
+        <i class="fas fa-seedling"></i><span>Cultures</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='recoltes'" (click)="changerOnglet('recoltes')">
+        <i class="fas fa-wheat-awn"></i><span>Récoltes</span>
+      </div>
+    </nav>
+
+    <div class="nav-section">Analyse</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" [class.active]="ongletActif==='analyse'" (click)="changerOnglet('analyse')">
+        <i class="fas fa-chart-bar"></i><span>Rendement</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='rapport'" (click)="changerOnglet('rapport')">
+        <i class="fas fa-file-alt"></i><span>Rapport</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-footer">
+      <div class="footer-avatar">
+        {{ prenomDirecteur ? prenomDirecteur.charAt(0) : 'D' }}{{ nomDirecteur ? nomDirecteur.charAt(0) : '' }}
+      </div>
+      <div style="flex:1">
+        <div class="footer-nom">{{ prenomDirecteur }} {{ nomDirecteur }}</div>
+        <div class="footer-role">Directeur SDDR</div>
+      </div>
+      <button class="btn-logout-icon" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- TOP HEADER -->
+    <div class="top-header">
+      <div class="header-left">
+        <div class="header-title">{{ getPageTitle() }}</div>
+        <div class="header-breadcrumb">Accueil / Dashboard / {{ getPageTitle() }}</div>
+      </div>
+      <div class="header-right">
+        @if (nomDepartement) {
+        <span class="dept-badge">
+            <i class="fas fa-map-marker-alt"></i> {{ nomDepartement }}
+          </span>
+        }
+        <div class="profil-info">
+          <div class="profil-nom">{{ prenomDirecteur }} {{ nomDirecteur }}</div>
+          <div class="profil-role">Directeur SDDR</div>
+        </div>
+        <div class="profil-avatar">
+          {{ prenomDirecteur ? prenomDirecteur.charAt(0) : 'D' }}{{ nomDirecteur ? nomDirecteur.charAt(0) : '' }}
+        </div>
+      </div>
+    </div>
+
+    @if (message) {
+    <div [class]="'feedback-msg ' + messageType">{{ message }}</div>
+    }
+
+    <!-- ══ ACCUEIL ══ -->
+    @if (ongletActif === 'accueil') {
+    <div class="page-header">
+      <h1>Bonjour, {{ prenomDirecteur }} {{ nomDirecteur }} 👋</h1>
+      <p>{{ today }} — Aperçu de votre département</p>
+    </div>
+
+    <!-- 5 cartes stats sur une ligne -->
+    <div class="stats-grid">
+      <div class="stat-card c1">
+        <div class="stat-lbl">Agriculteurs</div>
+        <div class="stat-num">{{ agriculteurs().length }}</div>
+        <div class="stat-sub">dans votre dept.</div>
+        <svg class="stat-wave" width="45" height="22" viewBox="0 0 45 22">
+          <polyline points="0,18 10,12 20,16 30,6 45,4" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="stat-card c2">
+        <div class="stat-lbl">Parcelles</div>
+        <div class="stat-num">{{ totalParcelles() }}</div>
+        <div class="stat-sub">enregistrées</div>
+        <svg class="stat-wave" width="45" height="22" viewBox="0 0 45 22">
+          <polyline points="0,16 10,10 20,14 30,5 45,3" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="stat-card c3">
+        <div class="stat-lbl">Cultures</div>
+        <div class="stat-num">{{ totalCultures() }}</div>
+        <div class="stat-sub">actives</div>
+        <svg class="stat-wave" width="45" height="22" viewBox="0 0 45 22">
+          <polyline points="0,18 10,13 20,16 30,7 45,5" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="stat-card c4">
+        <div class="stat-lbl">Récoltes</div>
+        <div class="stat-num">{{ totalRecoltes() }}</div>
+        <div class="stat-sub">cette saison</div>
+        <svg class="stat-wave" width="45" height="22" viewBox="0 0 45 22">
+          <polyline points="0,14 10,18 20,10 30,16 45,8" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="stat-card c5">
+        <div class="stat-lbl">Cultures retard</div>
+        <div class="stat-num">{{ culturesEnRetard() }}</div>
+        <div class="stat-sub">à surveiller</div>
+        <svg class="stat-wave" width="45" height="22" viewBox="0 0 45 22">
+          <polyline points="0,20 10,14 20,17 30,8 45,6" fill="none" stroke="rgba(62,32,0,0.3)" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Graphique + Donut -->
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-head">
+            <span class="card-title">
+              <i class="fas fa-chart-line"></i> Évolution surface cultivée
+            </span>
+          <span class="card-sub">{{ nomDepartement }}</span>
+        </div>
+        <div class="chart-area">
+          <div class="chart-metrics">
+            <div class="metric">
+              <div class="metric-dot green">
+                <i class="fas fa-chart-area" style="color:#1b5e20;font-size:13px"></i>
+              </div>
+              <div>
+                <div class="metric-num">{{ surfaceCultivee() | number:'1.0-0' }} m²</div>
+                <div class="metric-lbl">Surface cultivée</div>
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-dot amber">
+                <i class="fas fa-wheat-awn" style="color:#e65100;font-size:13px"></i>
+              </div>
+              <div>
+                <div class="metric-num">{{ totalRecoltes() }} récoltes</div>
+                <div class="metric-lbl">Cette saison</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#1b5e20"></div> Surface (m²)
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#f9a825"></div> Production (kg)
+            </div>
+          </div>
+          <!-- Graphique historique -->
+          @if (historiqueSurface().length > 0) {
+          <svg class="chart-svg" height="110" viewBox="0 0 400 110" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1b5e20" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#1b5e20" stop-opacity="0.02"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,85 C80,72 160,55 240,40 C320,25 360,15 400,8 L400,110 L0,110 Z" fill="url(#gGreen)"/>
+            <path d="M0,85 C80,72 160,55 240,40 C320,25 360,15 400,8" fill="none" stroke="#1b5e20" stroke-width="2"/>
+            @for (h of historiqueSurface(); track h.annee; let i = $index) {
+            <text [attr.x]="i * (400 / (historiqueSurface().length - 1 || 1))"
+                  y="108" font-size="9" fill="#7a9a7a">{{ h.annee }}</text>
+            }
+          </svg>
+          } @else {
+          <div style="height:110px;display:flex;align-items:center;justify-content:center;color:#7a9a7a;font-size:13px">
+            Aucune donnée historique
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Donut par variété -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Par variété</span>
+          <span class="card-sub">Oignon</span>
+        </div>
+        <div class="donut-area">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#f0f7f0" stroke-width="14"/>
+            @if (objectKeys(statsVariete()).length > 0) {
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#1b5e20" stroke-width="14" stroke-dasharray="88 132" stroke-dashoffset="-10"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#388e3c" stroke-width="14" stroke-dasharray="50 170" stroke-dashoffset="-98"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#f9a825" stroke-width="14" stroke-dasharray="32 188" stroke-dashoffset="-148"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#e65100" stroke-width="14" stroke-dasharray="30 190" stroke-dashoffset="-180"/>
+            }
+            <text x="50" y="47" text-anchor="middle" font-size="11" font-weight="bold" fill="#0a3d0a">
+              {{ totalRecoltes() }}
+            </text>
+            <text x="50" y="57" text-anchor="middle" font-size="8" fill="#7a9a7a">récoltes</text>
+          </svg>
+          <div class="variete-list">
+            @for (key of objectKeys(statsVariete()).slice(0,4); track key; let i = $index) {
+            <div>
+              <div class="variete-row">
+                <div class="variete-dot" [style.background]="getVarieteColor(i)"></div>
+                <span class="variete-name">{{ key }}</span>
+                <span class="variete-pct">{{ statsVariete()[key] | number:'1.0-0' }} kg</span>
+              </div>
+              <div class="variete-bar-wrap">
+                <div class="variete-bar"
+                     [style.background]="getVarieteColor(i)"
+                     [style.width.%]="(statsVariete()[key] / getMaxVal(statsVariete())) * 100">
+                </div>
+              </div>
+            </div>
+            }
+            @if (objectKeys(statsVariete()).length === 0) {
+            <div style="font-size:11px;color:#7a9a7a;text-align:center">
+              Chargement...
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dernières cultures -->
+    <div class="table-wrap">
+      <div class="card-head">
+        <span class="card-title"><i class="fas fa-seedling"></i> Dernières cultures</span>
+        <span class="voir-tout" (click)="changerOnglet('cultures')">Voir tout →</span>
+      </div>
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Type</th><th>Variété</th><th>Parcelle</th>
+          <th>Saison</th><th>Récolte prévue</th><th>Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (c of cultures().slice(0, 5); track c.idCulture) {
+        <tr>
+          <td><strong>{{ c.type }}</strong></td>
+          <td>{{ c.variete }}</td>
+          <td>{{ c.nomParcelle }}</td>
+          <td>{{ c.saison || '—' }}</td>
+          <td>{{ c.datePremierRecoltePrevu || '—' }}</td>
+          <td>
+                  <span [class]="'statut-pill ' + getStatutClass(getStatutCulture(c))">
+                    {{ getStatutLabel(getStatutCulture(c)) }}
+                  </span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- ══ AGRICULTEURS ══ -->
+    @if (ongletActif === 'agriculteurs') {
+    <div class="page-header">
+      <h1><i class="fas fa-users"></i> Agriculteurs</h1>
+      <p>{{ agriculteurs().length }} agriculteurs dans votre département</p>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" [value]="searchAgriculteur()"
+               (input)="searchAgriculteur.set($any($event.target).value)"
+               placeholder="Rechercher un agriculteur..." class="search-input"/>
+      </div>
+    </div>
+    <div class="cards-grid">
+      @for (a of agriculteursFiltres(); track a.id) {
+      <div class="agri-card">
+        <div class="agri-avatar">{{ a.nom.charAt(0) }}{{ a.prenom.charAt(0) }}</div>
+        <div style="flex:1">
+          <div class="agri-nom">{{ a.nom }} {{ a.prenom }}</div>
+          <div class="agri-meta">
+            <span><i class="fas fa-map"></i> {{ a.parcelles.length }} parcelle(s)</span>
+          </div>
+          <div class="agri-parcelles">
+            @for (p of a.parcelles.slice(0, 3); track p.idParcel) {
+            <span class="parcelle-tag">{{ p.nomParcelle }}</span>
+            }
+            @if (a.parcelles.length > 3) {
+            <span class="parcelle-tag more">+{{ a.parcelles.length - 3 }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      }
+      @if (agriculteursFiltres().length === 0) {
+      <div class="empty-state"><i class="fas fa-users"></i><p>Aucun agriculteur trouvé</p></div>
+      }
+    </div>
+    }
+
+    <!-- ══ PARCELLES ══ -->
+    @if (ongletActif === 'parcelles') {
+    <div class="page-header">
+      <h1><i class="fas fa-map"></i> Parcelles</h1>
+      <p>{{ totalParcelles() }} parcelles dans votre département</p>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" [value]="searchParcelle()"
+               (input)="searchParcelle.set($any($event.target).value)"
+               placeholder="Rechercher une parcelle..." class="search-input"/>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Nom</th><th>Lieu</th><th>Agriculteur</th>
+          <th>Superficie</th><th>Type sol</th><th>Irrigée</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (p of parcellesFiltrees(); track p.idParcel) {
+        <tr>
+          <td><strong>{{ p.nomParcelle }}</strong></td>
+          <td>{{ p.lieu || '—' }}</td>
+          <td>{{ p.nomAgriculteur }} {{ p.prenomAgriculteur }}</td>
+          <td>{{ p.superficie ? (p.superficie | number:'1.0-0') + ' m²' : '—' }}</td>
+          <td>{{ p.typeSol || '—' }}</td>
+          <td>
+                  <span [class]="p.estIrriguee ? 'pill-irrigue' : 'pill-sec'">
+                    {{ p.estIrriguee ? 'Oui' : 'Non' }}
+                  </span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- ══ CULTURES ══ -->
+    @if (ongletActif === 'cultures') {
+    <div class="page-header">
+      <h1><i class="fas fa-seedling"></i> Cultures</h1>
+      <p>{{ totalCultures() }} cultures dans votre département</p>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" [value]="searchCulture()"
+               (input)="searchCulture.set($any($event.target).value)"
+               placeholder="Rechercher une culture..." class="search-input"/>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Type</th><th>Variété</th><th>Parcelle</th>
+          <th>Saison</th><th>Date semence</th><th>Récolte prévue</th>
+          <th>Superficie</th><th>Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (c of culturesFiltrees(); track c.idCulture) {
+        <tr>
+          <td><strong>{{ c.type }}</strong></td>
+          <td>{{ c.variete }}</td>
+          <td>{{ c.nomParcelle }}</td>
+          <td>{{ c.saison || '—' }}</td>
+          <td>{{ c.dateSemence || '—' }}</td>
+          <td>{{ c.datePremierRecoltePrevu || '—' }}</td>
+          <td>{{ c.superficiCultive ? (c.superficiCultive | number:'1.0-0') + ' m²' : '—' }}</td>
+          <td>
+                  <span [class]="'statut-pill ' + getStatutClass(getStatutCulture(c))">
+                    {{ getStatutLabel(getStatutCulture(c)) }}
+                  </span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- ══ RÉCOLTES ══ -->
+    @if (ongletActif === 'recoltes') {
+    <div class="page-header">
+      <h1><i class="fas fa-wheat-awn"></i> Récoltes</h1>
+      <p>{{ totalRecoltes() }} récoltes enregistrées</p>
+    </div>
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" [value]="searchRecolte()"
+               (input)="searchRecolte.set($any($event.target).value)"
+               placeholder="Rechercher une récolte..." class="search-input"/>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Culture</th><th>Variété</th><th>Parcelle</th>
+          <th>Date récolte</th><th>Qté récoltée (kg)</th>
+          <th>Qté prévue (kg)</th><th>Taux réalisation</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (r of recoltesFiltrees(); track r.idRecolte) {
+        <tr>
+          <td><strong>{{ r.typeCulture }}</strong></td>
+          <td>{{ r.varieteCulture }}</td>
+          <td>{{ r.nomParcelle }}</td>
+          <td>{{ r.dateRecolte }}</td>
+          <td>{{ r.quantiteRecolte | number:'1.0-2' }}</td>
+          <td>{{ r.quantiteRecoltePrevu ? (r.quantiteRecoltePrevu | number:'1.0-2') : '—' }}</td>
+          <td>
+            @if (r.quantiteRecoltePrevu) {
+            <span [class]="'taux-pill ' + getTauxClass(getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu))">
+                      {{ getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) }}
+                    </span>
+            } @else { <span>—</span> }
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- ══ ANALYSE ══ -->
+    @if (ongletActif === 'analyse') {
+    <div class="page-header">
+      <h1><i class="fas fa-chart-bar"></i> Analyse rendement</h1>
+      <p>Statistiques de production de votre département</p>
+    </div>
+    <div class="analyse-grid">
+      @if (prevuVsReel()) {
+      <div class="analyse-card full">
+        <div class="analyse-title"><i class="fas fa-balance-scale"></i> Prévu vs Réel</div>
+        <div class="prevu-reel-grid">
+          <div class="prevu-box">
+            <div class="prevu-val">{{ prevuVsReel()!.totalPrevu | number:'1.0-0' }} kg</div>
+            <div class="prevu-label">Production prévue</div>
+          </div>
+          <div class="prevu-box green">
+            <div class="prevu-val">{{ prevuVsReel()!.totalReel | number:'1.0-0' }} kg</div>
+            <div class="prevu-label">Production réelle</div>
+          </div>
+          <div class="prevu-box">
+            <div class="prevu-val">{{ prevuVsReel()!.tauxRealisation }}</div>
+            <div class="prevu-label">Taux de réalisation</div>
+          </div>
+        </div>
+      </div>
+      }
+      @if (objectKeys(statsType()).length > 0) {
+      <div class="analyse-card">
+        <div class="analyse-title"><i class="fas fa-leaf"></i> Production par type</div>
+        <div class="stat-list">
+          @for (key of objectKeys(statsType()); track key) {
+          <div class="stat-row">
+            <span class="stat-key">{{ key }}</span>
+            <div class="stat-bar-wrap">
+              <div class="stat-bar" [style.width.%]="(statsType()[key] / getMaxVal(statsType())) * 100"></div>
+            </div>
+            <span class="stat-val">{{ statsType()[key] | number:'1.0-0' }} kg</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+      @if (objectKeys(statsVariete()).length > 0) {
+      <div class="analyse-card">
+        <div class="analyse-title"><i class="fas fa-tags"></i> Production par variété</div>
+        <div class="stat-list">
+          @for (key of objectKeys(statsVariete()); track key) {
+          <div class="stat-row">
+            <span class="stat-key">{{ key }}</span>
+            <div class="stat-bar-wrap">
+              <div class="stat-bar amber" [style.width.%]="(statsVariete()[key] / getMaxVal(statsVariete())) * 100"></div>
+            </div>
+            <span class="stat-val">{{ statsVariete()[key] | number:'1.0-0' }} kg</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+      @if (prevuVsReel() === null && objectKeys(statsType()).length === 0) {
+      <div class="empty-state full">
+        <i class="fas fa-chart-bar"></i>
+        <p>Chargement des statistiques...</p>
+        <button class="btn-reload" (click)="chargerStats()">
+          <i class="fas fa-sync"></i> Charger
+        </button>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ══ RAPPORT ══ -->
+    @if (ongletActif === 'rapport') {
+    <div class="page-header">
+      <h1><i class="fas fa-file-alt"></i> Rapport agricole</h1>
+      <p>Rapport annuel de votre département</p>
+    </div>
+    <div class="rapport-toolbar">
+      <div class="annee-select">
+        <label>Année :</label>
+        <select [(ngModel)]="anneeRapport" class="modal-input" style="width:110px">
+          <option [value]="2023">2023</option>
+          <option [value]="2024">2024</option>
+          <option [value]="2025">2025</option>
+          <option [value]="2026">2026</option>
+        </select>
+      </div>
+      <button class="btn-charger" (click)="chargerRapport()">
+        <i class="fas fa-sync"></i> Générer
+      </button>
+      <button class="btn-pdf" (click)="telechargerPdf()">
+        <i class="fas fa-file-pdf"></i> Télécharger PDF
+      </button>
+    </div>
+    @if (chargement()) {
+    <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Génération en cours...</div>
+    }
+    @if (rapport() && !chargement()) {
+    <div class="rapport-content">
+      <div class="rapport-header">
+        <div class="rapport-titre">RAPPORT AGRICOLE {{ rapport()!.annee }}</div>
+        <div class="rapport-sous-titre">{{ rapport()!.typeTerritoire }} DE {{ rapport()!.territoire.toUpperCase() }}</div>
+        <div class="rapport-meta">Directeur : {{ rapport()!.prenomDirecteur }} {{ rapport()!.nomDirecteur }} | Généré le : {{ rapport()!.dateGeneration }}</div>
+      </div>
+      <div class="rapport-stats">
+        <div class="rstat-card">
+          <div class="rstat-val">{{ rapport()!.surfaceCultivee | number:'1.0-0' }} m²</div>
+          <div class="rstat-label">Surface cultivée</div>
+        </div>
+        <div class="rstat-card">
+          <div class="rstat-val">{{ rapport()!.tauxOccupation }}%</div>
+          <div class="rstat-label">Taux occupation</div>
+        </div>
+        <div class="rstat-card">
+          <div class="rstat-val">{{ rapport()!.totalProduitKg | number:'1.0-0' }} kg</div>
+          <div class="rstat-label">Total produit</div>
+        </div>
+        <div class="rstat-card">
+          <div class="rstat-val">{{ rapport()!.tauxRealisation }}</div>
+          <div class="rstat-label">Taux réalisation</div>
+        </div>
+        <div class="rstat-card" [class.alert]="rapport()!.culturesEnRetard > 0">
+          <div class="rstat-val">{{ rapport()!.culturesEnRetard }}</div>
+          <div class="rstat-label">Cultures en retard</div>
+        </div>
+        <div class="rstat-card" [class.alert]="rapport()!.recoltesSousSeuil > 0">
+          <div class="rstat-val">{{ rapport()!.recoltesSousSeuil }}</div>
+          <div class="rstat-label">Récoltes sous seuil</div>
+        </div>
+      </div>
+      @if (objectKeys(rapport()!.productionParCulture).length > 0) {
+      <div class="rapport-section">
+        <div class="rapport-section-title">Production par culture</div>
+        <table class="data-table">
+          <thead><tr><th>Culture</th><th>Quantité (kg)</th></tr></thead>
+          <tbody>
+          @for (key of objectKeys(rapport()!.productionParCulture); track key) {
+          <tr><td>{{ key }}</td><td>{{ rapport()!.productionParCulture[key] | number:'1.0-2' }}</td></tr>
+          }
+          </tbody>
+        </table>
+      </div>
+      }
+      @if (objectKeys(rapport()!.productionParSaison).length > 0) {
+      <div class="rapport-section">
+        <div class="rapport-section-title">Production par saison</div>
+        <table class="data-table">
+          <thead><tr><th>Saison</th><th>Quantité (kg)</th></tr></thead>
+          <tbody>
+          @for (key of objectKeys(rapport()!.productionParSaison); track key) {
+          <tr><td>{{ key }}</td><td>{{ rapport()!.productionParSaison[key] | number:'1.0-2' }}</td></tr>
+          }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+    }
+    @if (!rapport() && !chargement()) {
+    <div class="empty-state">
+      <i class="fas fa-file-alt"></i>
+      <p>Cliquez sur "Générer" pour afficher le rapport</p>
+    </div>
+    }
+    }
+
+  </main>
+</div>

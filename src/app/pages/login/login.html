@@ -1,0 +1,81 @@
+<div class="login-page">
+
+  <!-- Fond slideshow -->
+  <div class="login-bg">
+    <div class="login-slide active"></div>
+    <div class="login-slide"></div>
+    <div class="login-slide"></div>
+  </div>
+  <div class="login-overlay"></div>
+
+  <!-- Formulaire centré -->
+  <div class="login-card">
+
+    <!-- Logo -->
+    <div class="login-logo" (click)="retourAccueil()">
+      <div class="logo-box">🌱</div>
+      <div>
+        <span class="logo-name">AgriSuivi</span>
+        <span class="logo-sub">Sénégal</span>
+      </div>
+    </div>
+
+    <h1 class="login-title">Connexion</h1>
+    <p class="login-desc">Accédez à votre espace personnalisé</p>
+
+    <!-- Erreur -->
+    @if (errorMessage) {
+    <div class="error-msg">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ errorMessage }}
+    </div>
+    }
+
+    <!-- Email -->
+    <div class="form-group">
+      <label>Adresse email</label>
+      <div class="input-wrap">
+        <i class="fas fa-envelope"></i>
+        <input
+          type="email"
+          [(ngModel)]="email"
+          placeholder="votre@email.sn"
+          (keyup.enter)="login()"
+          class="form-input"/>
+      </div>
+    </div>
+
+    <!-- Mot de passe -->
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock"></i>
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="password"
+          placeholder="••••••••"
+          (keyup.enter)="login()"
+          class="form-input"/>
+        <button class="toggle-pwd" (click)="togglePassword()">
+          <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bouton -->
+    <button class="btn-login" (click)="login()" [disabled]="loading">
+      @if (loading) {
+      <span class="spinner"></span> Connexion...
+      } @else {
+      <i class="fas fa-sign-in-alt"></i> Se connecter
+      }
+    </button>
+
+    <!-- Retour -->
+    <button class="btn-back" (click)="retourAccueil()">
+      <i class="fas fa-arrow-left"></i> Retour à l'accueil
+    </button>
+
+  </div>
+
+</div>
