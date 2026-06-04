@@ -88,4 +88,10 @@ export class CultureService {
       { headers: this.headers(), responseType: 'blob' }
     );
   }
+getProductionMensuelle(): Observable<any[]> {
+  return this.http.get<any[]>(
+    `${this.apiUrl}/productions/mon-departement/mensuel`,
+    { headers: this.headers() }
+  );
+}
 }
