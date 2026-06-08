@@ -1,1 +1,673 @@
-<p>dashboard-agriculteur works!</p>
+<div class="agri-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-box">🌾</div>
+      <div>
+        <span class="logo-name">AgriSuivi</span>
+        <span class="logo-sub">Agriculteur</span>
+      </div>
+    </div>
+    <div class="sidebar-profil">
+      <div class="profil-avatar-sb">{{ prenomAgriculteur ? prenomAgriculteur.charAt(0) : 'A' }}{{ nomAgriculteur ? nomAgriculteur.charAt(0) : '' }}</div>
+      <div>
+        <div class="profil-nom-sb">{{ prenomAgriculteur }} {{ nomAgriculteur }}</div>
+        <div class="profil-exp">{{ anneeExperience }} ans d'expérience</div>
+        <div class="coop-badge">🤝 {{ nomCooperative || 'Coopérative' }}</div>
+      </div>
+    </div>
+    <div class="nav-section">Tableau de bord</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" [class.active]="ongletActif==='accueil'" (click)="changerOnglet('accueil')">
+        <i class="fas fa-home"></i><span>Tableau de bord</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='parcelles'" (click)="changerOnglet('parcelles')">
+        <i class="fas fa-map"></i><span>Mes parcelles</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='cultures'" (click)="changerOnglet('cultures')">
+        <i class="fas fa-seedling"></i><span>Mes cultures</span>
+      </div>
+      <div class="nav-item" [class.active]="ongletActif==='recoltes'" (click)="changerOnglet('recoltes')">
+        <i class="fas fa-wheat-awn"></i><span>Mes récoltes</span>
+      </div>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">
+      <div class="footer-avatar">{{ prenomAgriculteur ? prenomAgriculteur.charAt(0) : 'A' }}{{ nomAgriculteur ? nomAgriculteur.charAt(0) : '' }}</div>
+      <div style="flex:1">
+        <div class="footer-nom">{{ prenomAgriculteur }} {{ nomAgriculteur }}</div>
+        <div class="footer-role">Agriculteur</div>
+      </div>
+      <button class="btn-logout-icon" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <div class="top-header">
+      <div class="header-left">
+        <div class="header-title">
+          {{ ongletActif === 'accueil' ? 'Tableau de bord' : ongletActif === 'parcelles' ? 'Mes Parcelles' : ongletActif === 'cultures' ? 'Mes Cultures' : 'Mes Récoltes' }}
+        </div>
+        <div class="header-breadcrumb">{{ today }}</div>
+      </div>
+      <div class="header-right">
+        @if (meteo()) {
+        <div class="meteo-badge">
+          <span style="font-size:16px">{{ getMeteoEmoji() }}</span>
+          <span style="font-size:13px;font-weight:600;color:#0a3d0a">{{ meteo()!.temp }}°C</span>
+          <span style="font-size:11px;color:#7a9a7a">{{ meteo()!.city }}</span>
+        </div>
+        }
+        <div class="profil-info">
+          <div class="profil-nom">{{ prenomAgriculteur }} {{ nomAgriculteur }}</div>
+          <div class="profil-role">Agriculteur</div>
+        </div>
+        <div class="profil-avatar">{{ prenomAgriculteur ? prenomAgriculteur.charAt(0) : 'A' }}{{ nomAgriculteur ? nomAgriculteur.charAt(0) : '' }}</div>
+      </div>
+    </div>
+
+    @if (message) {
+    <div [class]="'feedback-msg ' + messageType">{{ message }}</div>
+    }
+
+    <!-- ══ ACCUEIL ══ -->
+    @if (ongletActif === 'accueil') {
+    <div class="welcome-header">
+      <div class="welcome-left">
+        <div class="welcome-avatar">👨‍🌾</div>
+        <div>
+          <h1>Salut, {{ prenomAgriculteur }} {{ nomAgriculteur }} 👋</h1>
+          <p>{{ today }} — Aperçu de votre ferme</p>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <div class="coop-tag">🤝 {{ nomCooperative }}</div>
+            @if (anneesDisponibles().length > 0) {
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px">
+              <span style="color:rgba(255,255,255,0.7);font-size:11px">Campagne :</span>
+              <select [(ngModel)]="anneeCampagne" (change)="filtrerParCampagne()"
+                      style="background:transparent;border:none;color:#fff;font-size:11px;font-weight:600;outline:none;cursor:pointer">
+                @for (annee of anneesDisponibles(); track annee) {
+                <option [value]="annee" style="color:#0a3d0a">{{ annee }}</option>
+                }
+              </select>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card bg-parcelle">
+        <div class="stat-overlay">
+          <div class="stat-lbl">Parcelles</div>
+          <div class="stat-num">{{ totalParcelles() }}</div>
+          <div class="stat-sub">enregistrées</div>
+        </div>
+      </div>
+      <div class="stat-card bg-culture">
+        <div class="stat-overlay">
+          <div class="stat-lbl">Cultures</div>
+          <div class="stat-num">{{ culturesCampagne().length }}</div>
+          <div class="stat-sub">campagne {{ anneeCampagne }}</div>
+        </div>
+      </div>
+      <div class="stat-card bg-recolte">
+        <div class="stat-overlay">
+          <div class="stat-lbl">Récoltes</div>
+          <div class="stat-num">{{ recoltesCampagne().length }}</div>
+          <div class="stat-sub">cette saison</div>
+        </div>
+      </div>
+      <div class="stat-card bg-taux">
+        <div class="stat-overlay">
+          <div class="stat-lbl">Production</div>
+          <div class="stat-num">{{ (productionCampagne() / 1000) | number:'1.1-1' }} t</div>
+          <div class="stat-sub">cette campagne</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="col-left">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title"><i class="fas fa-chart-pie"></i> Récoltes par année</span>
+            <span class="card-sub">en tonnes</span>
+          </div>
+          <div class="donut-body-agri">
+            <div class="donut-chart-wrap">
+              <svg width="120" height="120" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="35" fill="none" stroke="#f0f7f0" stroke-width="14"/>
+                @for (seg of getDonutRecoltes(); track $index) {
+                <circle cx="50" cy="50" r="35" fill="none"
+                        [attr.stroke]="seg.color" stroke-width="14"
+                        [attr.stroke-dasharray]="seg.dasharray"
+                        [attr.stroke-dashoffset]="seg.dashoffset"/>
+                }
+              </svg>
+            </div>
+            <div class="donut-legend">
+              @for (item of getStatsRecoltesByAnnee(); track item.annee; let i = $index) {
+              <div class="donut-legend-row">
+                <div class="donut-legend-dot" [style.background]="getDonutColor(i)"></div>
+                <span class="donut-legend-lbl">{{ item.annee }}</span>
+                <span class="donut-legend-val">{{ (item.total / 1000) | number:'1.1-1' }} t</span>
+              </div>
+              }
+              @if (getStatsRecoltesByAnnee().length === 0) {
+              <div style="font-size:11px;color:#7a9a7a;text-align:center">Aucune récolte</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-right-equal">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title"><i class="fas fa-map"></i> Surface cultivée</span>
+            <span class="card-sub">par année (m²)</span>
+          </div>
+          <div class="donut-body-agri">
+            <div class="donut-chart-wrap">
+              <svg width="120" height="120" viewBox="0 0 100 100">
+                @for (seg of getDonutSurface(); track $index) {
+                <circle cx="50" cy="50" r="35" fill="none"
+                        [attr.stroke]="seg.color" stroke-width="14"
+                        [attr.stroke-dasharray]="seg.dasharray"
+                        [attr.stroke-dashoffset]="seg.dashoffset"/>
+                }
+              </svg>
+            </div>
+            <div class="donut-legend">
+              @for (item of getStatsSurfaceByAnnee(); track item.annee; let i = $index) {
+              <div class="donut-legend-row">
+                <div class="donut-legend-dot" [style.background]="getDonutColorSurface(i)"></div>
+                <span class="donut-legend-lbl">{{ item.annee }}</span>
+                <span class="donut-legend-val">{{ item.surface | number:'1.0-0' }} m²</span>
+              </div>
+              }
+              @if (getStatsSurfaceByAnnee().length === 0) {
+              <div style="font-size:11px;color:#7a9a7a;text-align:center">Aucune culture</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ PARCELLES ══ -->
+    @if (ongletActif === 'parcelles') {
+    <div class="page-header-agri">
+      <div>
+        <h1><i class="fas fa-map"></i> Mes Parcelles</h1>
+        <p>{{ totalParcelles() }} parcelle(s) enregistrée(s)</p>
+      </div>
+      <button class="btn-primary" (click)="showFormParcelle = !showFormParcelle">
+        <i class="fas fa-plus"></i> Ajouter une parcelle
+      </button>
+    </div>
+
+    @if (showFormParcelle) {
+    <div class="form-card">
+      <div class="form-title">🗺️ Nouvelle parcelle</div>
+      <div class="form-note">
+        <i class="fas fa-info-circle"></i>
+        La qualité du sol est utilisée par notre modèle IA pour prédire votre rendement.
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom de la parcelle *</label>
+          <input type="text" [(ngModel)]="nouvelleParcelle.nomParcelle" placeholder="Ex: Parcelle Nord" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Lieu / Village *</label>
+          <input type="text" [(ngModel)]="nouvelleParcelle.lieu" placeholder="Ex: Kaolack" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Superficie (m²) *</label>
+          <input type="number" [(ngModel)]="nouvelleParcelle.superficie" placeholder="500" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Type de sol</label>
+          <select [(ngModel)]="nouvelleParcelle.typeSol" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Argileux</option>
+            <option>Sableux</option>
+            <option>Limoneux</option>
+            <option>Argiloso-sableux</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Qualité du sol</label>
+          <select [(ngModel)]="nouvelleParcelle.qualiteSol" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Bonne</option>
+            <option>Moyenne</option>
+            <option>Faible</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source d'eau</label>
+          <select [(ngModel)]="nouvelleParcelle.sourceEau" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Pluie</option>
+            <option>Puits</option>
+            <option>Forage</option>
+            <option>Rivière</option>
+            <option>Canal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Irriguée ?</label>
+          <select [(ngModel)]="nouvelleParcelle.estIrriguee" class="form-input">
+            <option [ngValue]="true">Oui</option>
+            <option [ngValue]="false">Non</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormParcelle = false">Annuler</button>
+        <button class="btn-primary" (click)="ajouterParcelle()">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+      </div>
+    </div>
+    }
+
+    <div class="parcelles-grid">
+      @for (p of parcelles(); track p.idParcel) {
+      <div class="parcelle-card">
+        <div class="parcelle-header">
+          <div class="parcelle-icon">🗺️</div>
+          <div>
+            <div class="parcelle-nom">{{ p.nomParcelle }}</div>
+            <div class="parcelle-lieu">📍 {{ p.lieu }}</div>
+          </div>
+        </div>
+        <div class="parcelle-details">
+          <div class="parcelle-detail"><span>Superficie</span><strong>{{ p.superficie | number:'1.0-0' }} m²</strong></div>
+          <div class="parcelle-detail"><span>Type sol</span><strong>{{ p.typeSol || '—' }}</strong></div>
+          <div class="parcelle-detail"><span>Qualité sol</span><strong>{{ p.qualiteSol || '—' }}</strong></div>
+          <div class="parcelle-detail"><span>Source eau</span><strong>{{ p.sourceEau || '—' }}</strong></div>
+          <div class="parcelle-detail"><span>Irriguée</span>
+            <span [class]="p.estIrriguee ? 'pill-irrigue' : 'pill-sec'">{{ p.estIrriguee ? 'Oui' : 'Non' }}</span>
+          </div>
+        </div>
+      </div>
+      }
+      @if (parcelles().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-map"></i>
+        <p>Aucune parcelle enregistrée</p>
+        <button class="btn-primary" (click)="showFormParcelle = true">+ Ajouter une parcelle</button>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ══ CULTURES ══ -->
+    @if (ongletActif === 'cultures') {
+    <div class="page-header-agri">
+      <div>
+        <h1><i class="fas fa-seedling"></i> Mes Cultures</h1>
+        <p>{{ totalCultures() }} culture(s) enregistrée(s)</p>
+      </div>
+      <button class="btn-primary" (click)="showFormCulture = !showFormCulture; showFormModifierCulture = false">
+        <i class="fas fa-plus"></i> Ajouter une culture
+      </button>
+    </div>
+
+    <!-- Formulaire ajout -->
+    @if (showFormCulture) {
+    <div class="form-card">
+      <div class="form-title">🌱 Nouvelle culture</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Parcelle *</label>
+          <select [(ngModel)]="nouvelleCulture.idParcel" class="form-input">
+            <option [value]="0">Sélectionner une parcelle</option>
+            @for (p of parcelles(); track p.idParcel) {
+            <option [value]="p.idParcel">{{ p.nomParcelle }} ({{ p.lieu }})</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type de culture *</label>
+          <select [(ngModel)]="nouvelleCulture.type" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>oignon</option>
+            <option>tomate</option>
+            <option>mais</option>
+            <option>riz</option>
+            <option>arachide</option>
+            <option>mil</option>
+            <option>niebe</option>
+            <option>manioc</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Variété *</label>
+          <input type="text" [(ngModel)]="nouvelleCulture.variete" placeholder="Ex: Violet de Galmi" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Saison *</label>
+          <select [(ngModel)]="nouvelleCulture.saison" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Hivernage</option>
+            <option>Saison sèche</option>
+            <option>Contre-saison</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date de semence *</label>
+          <input type="date" [(ngModel)]="nouvelleCulture.dateSemence" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Superficie cultivée (m²) *</label>
+          <input type="number" [(ngModel)]="nouvelleCulture.superficiCultive" placeholder="300" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Type d'irrigation</label>
+          <select [(ngModel)]="nouvelleCulture.typeIrrigation" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Goutte à goutte</option>
+            <option>Aspersion</option>
+            <option>Gravitaire</option>
+            <option>Pluviale</option>
+            <option>Non irriguée</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantité semée (g)</label>
+          <input type="number" [(ngModel)]="nouvelleCulture.quantiteSeme" placeholder="50" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Intrant utilisé</label>
+          <input type="text" [(ngModel)]="nouvelleCulture.intraUtilise" placeholder="Ex: NPK, Urée..." class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Fumure organique ?</label>
+          <select [(ngModel)]="nouvelleCulture.fumureOrganique" class="form-input">
+            <option [ngValue]="false">Non</option>
+            <option [ngValue]="true">Oui (fumier, compost...)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormCulture = false">Annuler</button>
+        <button class="btn-primary" (click)="ajouterCulture()">
+          <i class="fas fa-save"></i> Enregistrer & Prédire
+        </button>
+      </div>
+    </div>
+    }
+
+    <!-- Formulaire modifier -->
+    @if (showFormModifierCulture && cultureAModifier) {
+    <div class="form-card" style="border-color:#1b5e20">
+      <div class="form-title">✏️ Modifier la culture</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Parcelle *</label>
+          <select [(ngModel)]="cultureAModifier.idParcel" class="form-input">
+            @for (p of parcelles(); track p.idParcel) {
+            <option [value]="p.idParcel">{{ p.nomParcelle }} ({{ p.lieu }})</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type de culture *</label>
+          <select [(ngModel)]="cultureAModifier.type" class="form-input">
+            <option>oignon</option>
+            <option>tomate</option>
+            <option>mais</option>
+            <option>riz</option>
+            <option>arachide</option>
+            <option>mil</option>
+            <option>niebe</option>
+            <option>manioc</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Variété *</label>
+          <input type="text" [(ngModel)]="cultureAModifier.variete" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Saison *</label>
+          <select [(ngModel)]="cultureAModifier.saison" class="form-input">
+            <option>Hivernage</option>
+            <option>Saison sèche</option>
+            <option>Contre-saison</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Superficie cultivée (m²)</label>
+          <input type="number" [(ngModel)]="cultureAModifier.superficiCultive" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Type d'irrigation</label>
+          <select [(ngModel)]="cultureAModifier.typeIrrigation" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Goutte à goutte</option>
+            <option>Aspersion</option>
+            <option>Gravitaire</option>
+            <option>Pluviale</option>
+            <option>Non irriguée</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Intrant utilisé</label>
+          <input type="text" [(ngModel)]="cultureAModifier.intraUtilise" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Fumure organique ?</label>
+          <select [(ngModel)]="cultureAModifier.fumureOrganique" class="form-input">
+            <option [ngValue]="false">Non</option>
+            <option [ngValue]="true">Oui</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormModifierCulture = false; cultureAModifier = null">Annuler</button>
+        <button class="btn-primary" (click)="modifierCulture()">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+
+      </div>
+    </div>
+    }
+
+    <!-- Tableau cultures -->
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Culture</th><th>Parcelle</th><th>Saison</th>
+          <th>Date semence</th><th>Récolte prévue</th>
+          <th>Qté prévue (t)</th><th>Statut</th><th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (c of cultures(); track c.idCulture) {
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">🧅</span>
+              <div>
+                <div style="font-weight:700;font-size:13px;color:#0a3d0a">{{ c.type | titlecase }}</div>
+                <div style="font-size:11px;color:#7a9a7a">{{ c.variete }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:12px">{{ c.nomParcelle }}</td>
+          <td><span style="background:#f0f7f0;color:#1b5e20;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600">{{ c.saison || '—' }}</span></td>
+          <td style="font-size:12px;color:#7a9a7a">{{ c.dateSemence || '—' }}</td>
+          <td style="font-size:12px;color:#1b5e20;font-weight:600">{{ c.datePremierRecoltePrevu || '—' }}</td>
+          <td>
+            @if (c.quantiteRecoltePrevu) {
+            <span style="font-size:12px;font-weight:700;color:#1b5e20">{{ (c.quantiteRecoltePrevu / 1000) | number:'1.1-1' }} t</span>
+            } @else {
+            <span style="font-size:11px;color:#7a9a7a">Calcul...</span>
+            }
+          </td>
+          <td><span [class]="'statut-pill ' + getStatutClass(getStatutCulture(c))">{{ getStatutLabel(getStatutCulture(c)) }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <td>
+                <div style="display:flex;gap:6px">
+                  <button class="action-btn action-edit" title="Modifier"
+                          (click)="ouvrirModifierCulture(c)">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button class="action-btn action-del" title="Supprimer"
+                          (click)="supprimerCulture(c.idCulture)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </div>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+    <!-- ══ RÉCOLTES ══ -->
+    @if (ongletActif === 'recoltes') {
+    <div class="page-header-agri">
+      <div>
+        <h1><i class="fas fa-wheat-awn"></i> Mes Récoltes</h1>
+        <p>{{ totalRecoltes() }} récolte(s) · Production totale : {{ (totalProduction() / 1000) | number:'1.2-2' }} t</p>
+      </div>
+      <button class="btn-primary" (click)="showFormRecolte = !showFormRecolte">
+        <i class="fas fa-plus"></i> Enregistrer une récolte
+      </button>
+    </div>
+
+    @if (showFormRecolte) {
+    <div class="form-card">
+      <div class="form-title">🌾 Nouvelle récolte</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Culture *</label>
+          <select [(ngModel)]="nouvelleRecolte.idCulture" class="form-input">
+            <option [value]="0">Sélectionner une culture</option>
+            @for (c of cultures(); track c.idCulture) {
+            <option [value]="c.idCulture">{{ c.type | titlecase }} - {{ c.variete }} ({{ c.nomParcelle }})</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date de récolte *</label>
+          <input type="date" [(ngModel)]="nouvelleRecolte.dateRecolte" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Quantité récoltée (kg) *</label>
+          <input type="number" [(ngModel)]="nouvelleRecolte.quantiteRecolte" placeholder="5000" class="form-input"/>
+        </div>
+      </div>
+
+      @if (nouvelleRecolte.idCulture) {
+      @for (c of cultures(); track c.idCulture) {
+      @if (c.idCulture == nouvelleRecolte.idCulture) {
+      @if (peutRecolter(c.idCulture)) {
+      <div style="background:#e8f5e9;color:#1b5e20;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
+        <span>✅</span>
+        <span>
+          Avancement : <strong>{{ getAvancement(c) }}%</strong> ·
+          Récolte prévue : <strong>{{ c.datePremierRecoltePrevu }}</strong> ·
+          Prévu : <strong>{{ c.quantiteRecoltePrevu ? ((c.quantiteRecoltePrevu / 1000) | number:'1.1-1') + ' t' : 'Calcul...' }}</strong>
+        </span>
+      </div>
+      } @else {
+      <div style="background:#ffebee;color:#c62828;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:flex;gap:8px;align-items:center">
+        <span>🚫</span>
+        <span>
+                      Récolte bloquée — il reste encore
+                      <strong>{{ getJoursRestants(c.idCulture) }} jours</strong>
+                      avant la date prévue ({{ c.datePremierRecoltePrevu }}).
+                    </span>
+      </div>
+      }
+      }
+      }
+      }
+
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormRecolte = false">Annuler</button>
+        <button class="btn-primary"
+                (click)="enregistrerRecolte()"
+                [disabled]="nouvelleRecolte.idCulture ? !peutRecolter(nouvelleRecolte.idCulture) : false"
+                [style.opacity]="nouvelleRecolte.idCulture && !peutRecolter(nouvelleRecolte.idCulture) ? '0.5' : '1'"
+                [style.cursor]="nouvelleRecolte.idCulture && !peutRecolter(nouvelleRecolte.idCulture) ? 'not-allowed' : 'pointer'">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+      </div>
+    </div>
+    }
+
+    <div class="kpi-row" style="margin-bottom:16px">
+      <div class="kpi-card green">
+        <div class="kpi-val">{{ (totalProduction() / 1000) | number:'1.2-2' }} t</div>
+        <div class="kpi-lbl">Production totale</div>
+      </div>
+      <div class="kpi-card" style="background:#fff8e1;border-color:#ffe082">
+        <div class="kpi-val">{{ (totalPrevu() / 1000) | number:'1.2-2' }} t</div>
+        <div class="kpi-lbl">Prévu</div>
+      </div>
+      <div class="kpi-card" [style.background]="tauxRealisation() >= 80 ? '#e8f5e9' : tauxRealisation() >= 50 ? '#fff8e1' : '#ffebee'">
+        <div class="kpi-val">{{ tauxRealisation() }}%</div>
+        <div class="kpi-lbl">Taux de réalisation</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Culture</th><th>Parcelle</th>
+          <th>Date récolte</th><th>Qté récoltée (t)</th>
+          <th>Qté prévue (t)</th><th>Taux</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (r of recoltes(); track r.idRecolte) {
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">🧅</span>
+              <div>
+                <div style="font-weight:700;font-size:13px;color:#0a3d0a">{{ r.typeCulture | titlecase }}</div>
+                <div style="font-size:11px;color:#7a9a7a">{{ r.varieteCulture }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:12px">{{ r.nomParcelle }}</td>
+          <td style="font-size:12px;color:#7a9a7a">{{ r.dateRecolte }}</td>
+          <td><span style="font-weight:700;color:#1b5e20">{{ (r.quantiteRecolte / 1000) | number:'1.2-2' }} t</span></td>
+          <td style="font-size:12px;color:#7a9a7a">
+            {{ r.quantiteRecoltePrevu ? ((r.quantiteRecoltePrevu / 1000) | number:'1.2-2') + ' t' : '—' }}
+          </td>
+          <td>
+            @if (r.quantiteRecoltePrevu) {
+            <span [class]="'taux-pill ' + (getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) >= 80 ? 'taux-bon' : getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) >= 50 ? 'taux-moyen' : 'taux-faible')">
+                      {{ getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) }}%
+                    </span>
+            } @else {
+            <span>—</span>
+            }
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+
+  </main>
+</div>
