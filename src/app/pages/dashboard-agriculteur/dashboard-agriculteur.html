@@ -276,7 +276,68 @@
       </div>
     </div>
     }
-
+    @if (showFormModifierParcelle && parcelleAModifier) {
+    <div class="form-card" style="border-color:#1b5e20">
+      <div class="form-title">✏️ Modifier la parcelle</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom de la parcelle *</label>
+          <input type="text" [(ngModel)]="parcelleAModifier.nomParcelle" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Lieu / Village *</label>
+          <input type="text" [(ngModel)]="parcelleAModifier.lieu" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Superficie (m²) *</label>
+          <input type="number" [(ngModel)]="parcelleAModifier.superficie" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Type de sol</label>
+          <select [(ngModel)]="parcelleAModifier.typeSol" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Argileux</option>
+            <option>Sableux</option>
+            <option>Limoneux</option>
+            <option>Argiloso-sableux</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Qualité du sol</label>
+          <select [(ngModel)]="parcelleAModifier.qualiteSol" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Bonne</option>
+            <option>Moyenne</option>
+            <option>Faible</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source d'eau</label>
+          <select [(ngModel)]="parcelleAModifier.sourceEau" class="form-input">
+            <option value="">Sélectionner</option>
+            <option>Pluie</option>
+            <option>Puits</option>
+            <option>Forage</option>
+            <option>Rivière</option>
+            <option>Canal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Irriguée ?</label>
+          <select [(ngModel)]="parcelleAModifier.estIrriguee" class="form-input">
+            <option [ngValue]="true">Oui</option>
+            <option [ngValue]="false">Non</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormModifierParcelle = false; parcelleAModifier = null">Annuler</button>
+        <button class="btn-primary" (click)="modifierParcelle()">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+      </div>
+    </div>
+    }
     <div class="parcelles-grid">
       @for (p of parcelles(); track p.idParcel) {
       <div class="parcelle-card">
@@ -294,6 +355,16 @@
           <div class="parcelle-detail"><span>Source eau</span><strong>{{ p.sourceEau || '—' }}</strong></div>
           <div class="parcelle-detail"><span>Irriguée</span>
             <span [class]="p.estIrriguee ? 'pill-irrigue' : 'pill-sec'">{{ p.estIrriguee ? 'Oui' : 'Non' }}</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;justify-content:flex-end">
+            <button class="action-btn action-edit" title="Modifier"
+                    (click)="ouvrirModifierParcelle(p)">
+              <i class="fas fa-pen"></i>
+            </button>
+            <button class="action-btn action-del" title="Supprimer"
+                    (click)="supprimerParcelle(p.idParcel)">
+              <i class="fas fa-trash"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -339,13 +410,13 @@
           <select [(ngModel)]="nouvelleCulture.type" class="form-input">
             <option value="">Sélectionner</option>
             <option>oignon</option>
-            <option>tomate</option>
+            <!--<option>tomate</option>
             <option>mais</option>
             <option>riz</option>
             <option>arachide</option>
             <option>mil</option>
             <option>niebe</option>
-            <option>manioc</option>
+            <option>manioc</option>-->
           </select>
         </div>
         <div class="form-group">
@@ -422,13 +493,6 @@
           <label>Type de culture *</label>
           <select [(ngModel)]="cultureAModifier.type" class="form-input">
             <option>oignon</option>
-            <option>tomate</option>
-            <option>mais</option>
-            <option>riz</option>
-            <option>arachide</option>
-            <option>mil</option>
-            <option>niebe</option>
-            <option>manioc</option>
           </select>
         </div>
         <div class="form-group">
@@ -508,7 +572,7 @@
           <td style="font-size:12px;color:#1b5e20;font-weight:600">{{ c.datePremierRecoltePrevu || '—' }}</td>
           <td>
             @if (c.quantiteRecoltePrevu) {
-            <span style="font-size:12px;font-weight:700;color:#1b5e20">{{ (c.quantiteRecoltePrevu / 1000) | number:'1.1-1' }} t</span>
+            <span style="font-size:12px;font-weight:700;color:#1b5e20">{{ formatQuantiteML(c.quantiteRecoltePrevu) }}</span>
             } @else {
             <span style="font-size:11px;color:#7a9a7a">Calcul...</span>
             }
@@ -516,18 +580,14 @@
           <td><span [class]="'statut-pill ' + getStatutClass(getStatutCulture(c))">{{ getStatutLabel(getStatutCulture(c)) }}</span></td>
           <td>
             <div style="display:flex;gap:6px">
-              <td>
-                <div style="display:flex;gap:6px">
-                  <button class="action-btn action-edit" title="Modifier"
-                          (click)="ouvrirModifierCulture(c)">
-                    <i class="fas fa-pen"></i>
-                  </button>
-                  <button class="action-btn action-del" title="Supprimer"
-                          (click)="supprimerCulture(c.idCulture)">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
+              <button class="action-btn action-edit" title="Modifier"
+                      (click)="ouvrirModifierCulture(c)">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="action-btn action-del" title="Supprimer"
+                      (click)="supprimerCulture(c.idCulture)">
+                <i class="fas fa-trash"></i>
+              </button>
             </div>
           </td>
         </tr>
@@ -539,6 +599,26 @@
 
     <!-- ══ RÉCOLTES ══ -->
     @if (ongletActif === 'recoltes') {
+
+    <!-- Alerte prix marché -->
+    <div [class]="'prix-marche-banner prix-' + getAlertePrix().type">
+      <div class="prix-left">
+        <i [class]="'fas ' + getAlertePrix().icon"></i>
+        <div>
+          <div class="prix-titre">Prix du marché oignon</div>
+          <div class="prix-msg">{{ getAlertePrix().message }}</div>
+        </div>
+      </div>
+      <div class="prix-right">
+        <div class="prix-conseil">{{ getAlertePrix().conseil }}</div>
+        @if (prixMarche().length > 0) {
+        <div class="prix-source">
+          📊 {{ prixMarche().length }} marché(s) · Prix moyen : {{ getPrixMoyenMarche() | number:'1.0-0' }} F/kg
+        </div>
+        }
+      </div>
+    </div>
+
     <div class="page-header-agri">
       <div>
         <h1><i class="fas fa-wheat-awn"></i> Mes Récoltes</h1>
@@ -548,6 +628,35 @@
         <i class="fas fa-plus"></i> Enregistrer une récolte
       </button>
     </div>
+    @if (showFormModifierRecolte && recolteAModifier) {
+    <div class="form-card" style="border-color:#1b5e20">
+      <div class="form-title">✏️ Modifier la récolte</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Culture</label>
+          <select [(ngModel)]="recolteAModifier.idCulture" class="form-input">
+            @for (c of cultures(); track c.idCulture) {
+            <option [value]="c.idCulture">{{ c.type | titlecase }} - {{ c.variete }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date de récolte *</label>
+          <input type="date" [(ngModel)]="recolteAModifier.dateRecolte" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Quantité récoltée (kg) *</label>
+          <input type="number" [(ngModel)]="recolteAModifier.quantiteRecolte" class="form-input"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" (click)="showFormModifierRecolte = false; recolteAModifier = null">Annuler</button>
+        <button class="btn-primary" (click)="modifierRecolte()">
+          <i class="fas fa-save"></i> Enregistrer
+        </button>
+      </div>
+    </div>
+    }
 
     @if (showFormRecolte) {
     <div class="form-card">
@@ -611,7 +720,7 @@
     </div>
     }
 
-    <div class="kpi-row" style="margin-bottom:16px">
+<div class="kpi-row" style="margin-bottom:16px">
       <div class="kpi-card green">
         <div class="kpi-val">{{ (totalProduction() / 1000) | number:'1.2-2' }} t</div>
         <div class="kpi-lbl">Production totale</div>
@@ -620,10 +729,10 @@
         <div class="kpi-val">{{ (totalPrevu() / 1000) | number:'1.2-2' }} t</div>
         <div class="kpi-lbl">Prévu</div>
       </div>
-      <div class="kpi-card" [style.background]="tauxRealisation() >= 80 ? '#e8f5e9' : tauxRealisation() >= 50 ? '#fff8e1' : '#ffebee'">
+      <!--<div class="kpi-card" [style.background]="tauxRealisation() >= 80 ? '#e8f5e9' : tauxRealisation() >= 50 ? '#fff8e1' : '#ffebee'">
         <div class="kpi-val">{{ tauxRealisation() }}%</div>
         <div class="kpi-lbl">Taux de réalisation</div>
-      </div>
+      </div>-->
     </div>
 
     <div class="table-wrap">
@@ -632,7 +741,7 @@
         <tr>
           <th>Culture</th><th>Parcelle</th>
           <th>Date récolte</th><th>Qté récoltée (t)</th>
-          <th>Qté prévue (t)</th><th>Taux</th>
+          <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -650,18 +759,19 @@
           <td style="font-size:12px">{{ r.nomParcelle }}</td>
           <td style="font-size:12px;color:#7a9a7a">{{ r.dateRecolte }}</td>
           <td><span style="font-weight:700;color:#1b5e20">{{ (r.quantiteRecolte / 1000) | number:'1.2-2' }} t</span></td>
-          <td style="font-size:12px;color:#7a9a7a">
-            {{ r.quantiteRecoltePrevu ? ((r.quantiteRecoltePrevu / 1000) | number:'1.2-2') + ' t' : '—' }}
-          </td>
           <td>
-            @if (r.quantiteRecoltePrevu) {
-            <span [class]="'taux-pill ' + (getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) >= 80 ? 'taux-bon' : getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) >= 50 ? 'taux-moyen' : 'taux-faible')">
-                      {{ getTaux(r.quantiteRecolte, r.quantiteRecoltePrevu) }}%
-                    </span>
-            } @else {
-            <span>—</span>
-            }
+            <div style="display:flex;gap:6px">
+              <button class="action-btn action-edit" title="Modifier"
+                      (click)="ouvrirModifierRecolte(r)">
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="action-btn action-del" title="Supprimer"
+                      (click)="supprimerRecolte(r.idRecolte)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </td>
+
         </tr>
         }
         </tbody>

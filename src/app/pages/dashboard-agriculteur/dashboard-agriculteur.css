@@ -359,7 +359,13 @@
 .pill-sec { background: #fff8e1; color: #e65100; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
 
 /* ── KPI ─────────────────────────────────────────── */
-.kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/*.kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }*/
+.kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
 .kpi-card { background: #f8faf6; border-radius: 10px; padding: 16px; text-align: center; border: 0.5px solid var(--border); }
 .kpi-card.green { background: #e8f5e9; border-color: #a5d6a7; }
 .kpi-val { font-size: 22px; font-weight: 700; color: var(--text); }
@@ -458,3 +464,31 @@
 
 .action-del { color: #c62828; }
 .action-del:hover { background: #fff3f3; }
+
+.prix-marche-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  gap: 16px;
+}
+.prix-success { background: #e8f5e9; border: 0.5px solid #a5d6a7; }
+.prix-warning { background: #fff8e1; border: 0.5px solid #ffe082; }
+.prix-danger  { background: #ffebee; border: 0.5px solid #ffcdd2; }
+.prix-info    { background: #e3f2fd; border: 0.5px solid #90caf9; }
+
+.prix-left { display: flex; align-items: center; gap: 10px; }
+.prix-left i { font-size: 20px; }
+.prix-success .prix-left i { color: #1b5e20; }
+.prix-warning .prix-left i { color: #e65100; }
+.prix-danger  .prix-left i { color: #c62828; }
+.prix-info    .prix-left i { color: #1565c0; }
+
+.prix-titre { font-size: 11px; font-weight: 700; color: #0a3d0a; }
+.prix-msg   { font-size: 14px; font-weight: 800; color: #0a3d0a; margin-top: 1px; }
+
+.prix-right { text-align: right; }
+.prix-conseil { font-size: 12px; font-weight: 600; color: #0a3d0a; }
+.prix-source  { font-size: 10px; color: #888; margin-top: 3px; }

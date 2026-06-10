@@ -37,7 +37,7 @@ export class DashboardAgriculteur implements OnInit {
   cultures = signal<Culture[]>([]);
   recoltes = signal<Recolte[]>([]);
   meteo = signal<Meteo | null>(null);
-
+  prixMarche = signal<any[]>([]);
   // Formulaire parcelle
   showFormParcelle = false;
   nouvelleParcelle = {
@@ -85,13 +85,24 @@ export class DashboardAgriculteur implements OnInit {
   totalCultures = computed(() => this.cultures().length);
   totalRecoltes = computed(() => this.recoltes().length);
 
-  totalProduction = computed(() =>
+  /* totalProduction = computed(() =>
     this.recoltes().reduce((sum, r) => sum + r.quantiteRecolte, 0)
-  );
-
-  totalPrevu = computed(() =>
+  ); */
+totalProduction(): number {
+  return this.recoltesCampagne().reduce((sum, r) => sum + r.quantiteRecolte, 0);
+}
+  /* totalPrevu = computed(() =>
     this.recoltes().reduce((sum, r) => sum + (r.quantiteRecoltePrevu || 0), 0)
-  );
+  ); */
+totalPrevu(): number {
+  return this.recoltesCampagne().reduce((sum, r) => {
+    if (!r.quantiteRecoltePrevu) return sum;
+    const valeurKg = r.quantiteRecoltePrevu > 100000
+      ? r.quantiteRecoltePrevu / 1000
+      : r.quantiteRecoltePrevu;
+    return sum + valeurKg;
+  }, 0);
+}
 
   tauxRealisation = computed(() => {
     const prevu = this.totalPrevu();
@@ -211,39 +222,57 @@ productionCampagne = computed(() =>
     });
   }
 
-  chargerDonnees() {
-    this.http.get<Parcelle[]>(
-      `${this.apiUrl}/api/culture/parcelles/mes-parcelles`,
-      { headers: this.getHeaders() }
-    ).subscribe({
-      next: (data) => this.parcelles.set(data),
-      error: () => {}
-    });
+ chargerDonnees() {
+   this.http.get<Parcelle[]>(
+     `${this.apiUrl}/api/culture/parcelles/mes-parcelles`,
+     { headers: this.getHeaders() }
+   ).subscribe({
+     next: (data) => this.parcelles.set(data),
+     error: () => {}
+   });
 
-    this.http.get<Culture[]>(
-      `${this.apiUrl}/api/culture/cultures/mes-cultures`,
-      { headers: this.getHeaders() }
-    ).subscribe({
-      next: (data) => {
-        this.cultures.set(data);
-        this.construireAnneesDisponibles();
-        this.mettreAJourChartRendement();
-      },
-      error: () => {}
-    });
+   this.http.get<Culture[]>(
+     `${this.apiUrl}/api/culture/cultures/mes-cultures`,
+     { headers: this.getHeaders() }
+   ).subscribe({
+     next: (data) => {
+       this.cultures.set(data);
+       this.construireAnneesDisponibles();
+       this.mettreAJourChartRendement();
+     },
+     error: () => {}
+   });
 
-    this.http.get<Recolte[]>(
-      `${this.apiUrl}/api/culture/recoltes/mes-recoltes`,
-      { headers: this.getHeaders() }
-    ).subscribe({
-      next: (data) => {
-        this.recoltes.set(data);
-        this.mettreAJourChartRendement();
-      },
-      error: () => {}
-    });
-  }
+   this.http.get<Recolte[]>(
+     `${this.apiUrl}/api/culture/recoltes/mes-recoltes`,
+     { headers: this.getHeaders() }
+   ).subscribe({
+     next: (data) => {
+       this.recoltes.set(data);
+       this.mettreAJourChartRendement();
+     },
+     error: () => {}
+   });
 
+   this.http.get<any[]>(`${this.apiUrl}/api/marche/collectes/derniers-prix`,
+     { headers: this.getHeaders() })
+     .subscribe({ next: d => this.prixMarche.set(Array.isArray(d) ? d : [d]), error: () => {} });
+
+ } // ← FIN chargerDonnees
+
+ getPrixMoyenMarche(): number {
+   const p = this.prixMarche();
+   if (!p.length) return 0;
+   return Math.round(p.reduce((s, x) => s + x.prixUnitaire, 0) / p.length);
+ }
+
+ getAlertePrix(): { type: string; icon: string; message: string; conseil: string } {
+   const prix = this.getPrixMoyenMarche();
+   if (prix === 0) return { type: 'info', icon: 'fa-info-circle', message: 'Prix marché non disponible', conseil: 'Contactez votre coopérative' };
+   if (prix >= 400) return { type: 'success', icon: 'fa-arrow-trend-up', message: `Prix actuel : ${prix.toLocaleString()} F/kg`, conseil: 'Bon moment pour vendre votre récolte !' };
+   if (prix >= 250) return { type: 'warning', icon: 'fa-minus', message: `Prix actuel : ${prix.toLocaleString()} F/kg`, conseil: 'Prix moyen — attendez une hausse si possible' };
+   return { type: 'danger', icon: 'fa-arrow-trend-down', message: `Prix actuel : ${prix.toLocaleString()} F/kg`, conseil: 'Prix bas — évitez de vendre maintenant' };
+ }
   chargerMeteo(ville: string) {
     const city = ville.split(',')[0].trim();
     this.http.get<any>(
@@ -673,6 +702,95 @@ modifierCulture() {
       this.chargerDonnees();
     },
     error: () => this.showMessage('Erreur modification !', 'error')
+  });
+}
+//formatage de kg prevue en tonne
+formatQuantiteML(quantite: number): string {
+  if (!quantite) return 'Calcul...';
+  // Si valeur > 100 000 kg → probablement en grammes
+  const valeurKg = quantite > 100000 ? quantite / 1000 : quantite;
+  return (valeurKg / 1000).toFixed(2) + ' t';
+}
+showFormModifierRecolte = false;
+recolteAModifier: any = null;
+
+ouvrirModifierRecolte(r: any) {
+  this.recolteAModifier = { ...r };
+  this.showFormModifierRecolte = true;
+  this.showFormRecolte = false;
+}
+
+modifierRecolte() {
+  if (!this.recolteAModifier) return;
+  this.http.put<any>(
+    `${this.apiUrl}/api/culture/recoltes/${this.recolteAModifier.idRecolte}`,
+    {
+      idCulture: this.recolteAModifier.idCulture,
+      dateRecolte: this.recolteAModifier.dateRecolte,
+      quantiteRecolte: this.recolteAModifier.quantiteRecolte
+    },
+    { headers: this.getHeaders() }
+  ).subscribe({
+    next: () => {
+      this.showMessage('Récolte modifiée !', 'success');
+      this.showFormModifierRecolte = false;
+      this.recolteAModifier = null;
+      this.chargerDonnees();
+    },
+    error: () => this.showMessage('Erreur modification !', 'error')
+  });
+}
+
+supprimerRecolte(id: number) {
+  if (!confirm('Voulez-vous vraiment supprimer cette récolte ?')) return;
+  this.http.delete(
+    `${this.apiUrl}/api/culture/recoltes/${id}`,
+    { headers: this.getHeaders() }
+  ).subscribe({
+    next: () => {
+      this.showMessage('Récolte supprimée !', 'success');
+      this.chargerDonnees();
+    },
+    error: () => this.showMessage('Erreur suppression !', 'error')
+  });
+}
+showFormModifierParcelle = false;
+parcelleAModifier: any = null;
+
+ouvrirModifierParcelle(p: any) {
+  this.parcelleAModifier = { ...p };
+  this.showFormModifierParcelle = true;
+  this.showFormParcelle = false;
+}
+
+modifierParcelle() {
+  if (!this.parcelleAModifier) return;
+  this.http.put<any>(
+    `${this.apiUrl}/api/culture/parcelles/${this.parcelleAModifier.idParcel}`,
+    this.parcelleAModifier,
+    { headers: this.getHeaders() }
+  ).subscribe({
+    next: () => {
+      this.showMessage('Parcelle modifiée !', 'success');
+      this.showFormModifierParcelle = false;
+      this.parcelleAModifier = null;
+      this.chargerDonnees();
+    },
+    error: () => this.showMessage('Erreur modification !', 'error')
+  });
+}
+
+supprimerParcelle(id: number) {
+  if (!confirm('Voulez-vous vraiment supprimer cette parcelle ?')) return;
+  this.http.delete(
+    `${this.apiUrl}/api/culture/parcelles/${id}`,
+    { headers: this.getHeaders() }
+  ).subscribe({
+    next: () => {
+      this.showMessage('Parcelle supprimée !', 'success');
+      this.chargerDonnees();
+    },
+    error: () => this.showMessage('Erreur suppression !', 'error')
   });
 }
   logout() { this.authService.logout(); }
