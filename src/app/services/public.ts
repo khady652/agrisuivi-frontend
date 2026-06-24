@@ -25,4 +25,13 @@ export class Public {
         return this.http.get<any>(
             `${this.apiUrl}/api/public/carte/zones-production`);
     }
+  getStats(): Observable<any> {
+        return this.http.get<any>(
+            `${this.apiUrl}/api/users/admin/stats/public`);
+    }
+
+    getMarches(): Observable<any[]> {
+        return this.http.get<any[]>(
+            `${this.apiUrl}/api/marche/marches`);
+    }
 }

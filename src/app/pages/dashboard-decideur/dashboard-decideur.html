@@ -22,17 +22,14 @@
       <div class="nav-item" [class.active]="ongletActif==='accueil'" (click)="changerOnglet('accueil')">
         <i class="fas fa-home"></i><span>Dashboard</span>
       </div>
+      <div class="nav-item" [class.active]="ongletActif==='production'" (click)="changerOnglet('production')">
+        <i class="fas fa-chart-bar"></i><span>Production</span>
+      </div>
       <div class="nav-item" [class.active]="ongletActif==='marches'" (click)="changerOnglet('marches')">
         <i class="fas fa-store"></i><span>Marchés</span>
       </div>
       <div class="nav-item" [class.active]="ongletActif==='enqueteurs'" (click)="changerOnglet('enqueteurs')">
         <i class="fas fa-user-tie"></i><span>Enquêteurs</span>
-      </div>
-      <div class="nav-item" [class.active]="ongletActif==='production'" (click)="changerOnglet('production')">
-        <i class="fas fa-chart-bar"></i><span>Production</span>
-      </div>
-      <div class="nav-item" [class.active]="ongletActif==='previsions'" (click)="changerOnglet('previsions')">
-        <i class="fas fa-robot"></i><span>Prévisions</span>
       </div>
       <div class="nav-item" [class.active]="ongletActif==='alertes'" (click)="changerOnglet('alertes')">
         <i class="fas fa-bell"></i><span>Alertes</span>
@@ -43,14 +40,20 @@
     </nav>
 
     <div class="sidebar-spacer"></div>
+
     <div class="sidebar-footer">
-      <div class="footer-avatar">{{ prenomDecideur() ? prenomDecideur().charAt(0) : 'D' }}{{ nomDecideur() ? nomDecideur().charAt(0) : '' }}</div>
+      <div class="footer-avatar">
+        {{ prenomDecideur() ? prenomDecideur().charAt(0) : 'D' }}{{ nomDecideur() ? nomDecideur().charAt(0) : '' }}
+      </div>
       <div style="flex:1">
         <div class="footer-nom">{{ prenomDecideur() }} {{ nomDecideur() }}</div>
         <div class="footer-role">Décideur ARM</div>
       </div>
-      <button class="btn-logout-icon" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
+      <button class="btn-logout-icon" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
     </div>
+
   </aside>
 
   <main class="main-content">
@@ -58,37 +61,26 @@
     <div class="top-header">
       <div class="header-left">
         <div class="header-title">
-          {{ ongletActif === 'accueil' ? 'Dashboard national' : ongletActif === 'marches' ? 'Marchés' : ongletActif === 'enqueteurs' ? 'Enquêteurs' : ongletActif === 'production' ? 'Production' : ongletActif === 'previsions' ? 'Prévisions ML' : 'Alertes' }}
+          {{ ongletActif === 'accueil' ? 'Dashboard national' :
+          ongletActif === 'marches' ? 'Marchés' :
+          ongletActif === 'enqueteurs' ? 'Enquêteurs' :
+          ongletActif === 'production' ? 'Production' :
+          ongletActif === 'previsions' ? 'Prévisions ML' : 'Alertes' }}
         </div>
         <div class="header-breadcrumb">{{ today }}</div>
       </div>
       <div class="header-right">
-        <div class="notif-wrap" (click)="showNotifDropdown = !showNotifDropdown">
+        <div class="notif-wrap" (click)="changerOnglet('alertes')">
           <i class="fas fa-bell"></i>
           @if (getNbNotifications() > 0) { <span class="notif-dot"></span> }
-          @if (showNotifDropdown) {
-          <div class="notif-dropdown" (click)="$event.stopPropagation()">
-            <div class="notif-drop-header">
-              <span>Alertes récentes</span>
-              <span class="notif-drop-count">{{ getNbNotifications() }}</span>
-            </div>
-            @for (n of getNotifications(); track $index) {
-            <div [class]="'notif-drop-item notif-' + n.type">
-              <i [class]="'fas ' + n.icon"></i>
-              <div>
-                <div class="notif-drop-titre">{{ n.titre }}</div>
-                <div class="notif-drop-msg">{{ n.message }}</div>
-              </div>
-            </div>
-            }
-          </div>
-          }
         </div>
         <div class="profil-info">
           <div class="profil-nom">{{ prenomDecideur() }} {{ nomDecideur() }}</div>
           <div class="profil-role">Décideur ARM</div>
         </div>
-        <div class="profil-avatar">{{ prenomDecideur() ? prenomDecideur().charAt(0) : 'D' }}{{ nomDecideur() ? nomDecideur().charAt(0) : '' }}</div>
+        <div class="profil-avatar" (click)="toggleProfilPopup()" style="cursor:pointer">
+          {{ prenomDecideur() ? prenomDecideur().charAt(0) : 'D' }}{{ nomDecideur() ? nomDecideur().charAt(0) : '' }}
+        </div>
       </div>
     </div>
 
@@ -96,9 +88,10 @@
     <div [class]="'feedback-msg ' + messageType">{{ message }}</div>
     }
 
-    <!-- ══ DASHBOARD — KPI SEULEMENT ══ -->
+    <!-- ══ DASHBOARD ══ -->
     @if (ongletActif === 'accueil') {
     <div class="scrollable-content">
+
       <div class="kpi-grid" style="margin-bottom:20px;">
         <div class="kpi-card kpi-green">
           <div class="kpi-icon"><i class="fas fa-warehouse"></i></div>
@@ -110,12 +103,12 @@
           </div>
         </div>
         <div class="kpi-card kpi-blue">
-          <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+          <div class="kpi-icon"><i class="fas fa-store"></i></div>
           <div class="kpi-info">
-            <div class="kpi-lbl">Mois couverts</div>
-            <div class="kpi-val">{{ getMoisCouverts() }}</div>
-            <div class="kpi-sub">Consommation nationale</div>
-            <span class="kpi-badge kpi-badge-info">Actuel</span>
+            <div class="kpi-lbl">Marchés avec stock</div>
+            <div class="kpi-val">{{ getMarchesAvecStock() }}</div>
+            <div class="kpi-sub">Sur {{ marches().length }} marchés</div>
+            <span class="kpi-badge kpi-badge-info">Actif</span>
           </div>
         </div>
         <div class="kpi-card kpi-purple">
@@ -124,7 +117,6 @@
             <div class="kpi-lbl">Prévision ML</div>
             <div class="kpi-val">{{ getPrevisionTotale() }}</div>
             <div class="kpi-sub">{{ prevision()?.periodeRecolte || '—' }}</div>
-            <span class="kpi-badge kpi-badge-info">Modèle IA</span>
           </div>
         </div>
         <div class="kpi-card kpi-orange">
@@ -137,6 +129,46 @@
           </div>
         </div>
       </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+        <div class="table-wrap" style="padding:16px;">
+          <div class="table-header-dec" style="margin-bottom:12px;">
+            <i class="fas fa-tags" style="color:#f9a825"></i>
+            Variation prix moyen — Oignon (F/kg)
+          </div>
+          <apx-chart
+            [series]="chartPrixOptions.series"
+            [chart]="chartPrixOptions.chart"
+            [stroke]="chartPrixOptions.stroke"
+            [colors]="chartPrixOptions.colors"
+            [fill]="chartPrixOptions.fill"
+            [markers]="chartPrixOptions.markers"
+            [xaxis]="chartPrixOptions.xaxis"
+            [yaxis]="chartPrixOptions.yaxis"
+            [grid]="chartPrixOptions.grid"
+            [tooltip]="chartPrixOptions.tooltip">
+          </apx-chart>
+        </div>
+        <div class="table-wrap" style="padding:16px;">
+          <div class="table-header-dec" style="margin-bottom:12px;">
+            <i class="fas fa-warehouse" style="color:#1b5e20"></i>
+            Évolution stock — Oignon (t)
+          </div>
+          <apx-chart
+            [series]="chartStockOptions.series"
+            [chart]="chartStockOptions.chart"
+            [stroke]="chartStockOptions.stroke"
+            [colors]="chartStockOptions.colors"
+            [fill]="chartStockOptions.fill"
+            [markers]="chartStockOptions.markers"
+            [xaxis]="chartStockOptions.xaxis"
+            [yaxis]="chartStockOptions.yaxis"
+            [grid]="chartStockOptions.grid"
+            [tooltip]="chartStockOptions.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+
     </div>
     }
 
@@ -152,22 +184,28 @@
           <i class="fas fa-plus"></i> Ajouter un marché
         </button>
       </div>
+
       @if (showFormMarche) {
       <div class="form-card-dec">
         <div class="form-title-dec">🏪 Nouveau marché</div>
         <div class="form-grid-dec">
-          <div class="form-group-dec"><label>Nom du marché *</label><input type="text" [(ngModel)]="nouveauMarche.nomMarche" placeholder="Ex: Marché Sandaga" class="form-input-dec"/></div>
-          <div class="form-group-dec"><label>Lieu *</label><input type="text" [(ngModel)]="nouveauMarche.lieuMarche" placeholder="Ex: Dakar" class="form-input-dec"/></div>
+          <div class="form-group-dec">
+            <label>Nom du marché *</label>
+            <input type="text" [(ngModel)]="nouveauMarche.nomMarche" placeholder="Ex: Marché Sandaga" class="form-input-dec"/>
+          </div>
+          <div class="form-group-dec">
+            <label>Lieu *</label>
+            <input type="text" [(ngModel)]="nouveauMarche.lieu" placeholder="Ex: Dakar" class="form-input-dec"/>
+          </div>
           <div class="form-group-dec">
             <label>Type de marché</label>
-            <select [(ngModel)]="nouveauMarche.typeMarche" class="form-input-dec">
+            <select [(ngModel)]="nouveauMarche.type" class="form-input-dec">
               <option value="">Sélectionner</option>
               <option>Marché de gros</option>
               <option>Marché de détail</option>
-              <option>Marché rural</option>
+              <option>Marché hebdomadaire</option>
             </select>
           </div>
-          <div class="form-group-dec"><label>Capacité de stockage (t)</label><input type="number" [(ngModel)]="nouveauMarche.capaciteStockage" placeholder="1000" class="form-input-dec"/></div>
         </div>
         <div class="form-actions-dec">
           <button class="btn-cancel-dec" (click)="showFormMarche = false">Annuler</button>
@@ -175,21 +213,28 @@
         </div>
       </div>
       }
+
       @if (showFormModifierMarche && marcheAModifier) {
       <div class="form-card-dec" style="border-color:#1b5e20">
         <div class="form-title-dec">✏️ Modifier le marché</div>
         <div class="form-grid-dec">
-          <div class="form-group-dec"><label>Nom du marché *</label><input type="text" [(ngModel)]="marcheAModifier.nomMarche" class="form-input-dec"/></div>
-          <div class="form-group-dec"><label>Lieu *</label><input type="text" [(ngModel)]="marcheAModifier.lieuMarche" class="form-input-dec"/></div>
+          <div class="form-group-dec">
+            <label>Nom du marché *</label>
+            <input type="text" [(ngModel)]="marcheAModifier.nomMarche" class="form-input-dec"/>
+          </div>
+          <div class="form-group-dec">
+            <label>Lieu *</label>
+            <input type="text" [(ngModel)]="marcheAModifier.lieu" class="form-input-dec"/>
+          </div>
           <div class="form-group-dec">
             <label>Type de marché</label>
-            <select [(ngModel)]="marcheAModifier.typeMarche" class="form-input-dec">
+            <select [(ngModel)]="marcheAModifier.type" class="form-input-dec">
               <option>Marché de gros</option>
               <option>Marché de détail</option>
               <option>Marché rural</option>
+              <option>Marché hebdomadaire</option>
             </select>
           </div>
-          <div class="form-group-dec"><label>Capacité de stockage (t)</label><input type="number" [(ngModel)]="marcheAModifier.capaciteStockage" class="form-input-dec"/></div>
         </div>
         <div class="form-actions-dec">
           <button class="btn-cancel-dec" (click)="showFormModifierMarche = false; marcheAModifier = null">Annuler</button>
@@ -197,16 +242,16 @@
         </div>
       </div>
       }
+
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Marché</th><th>Lieu</th><th>Type</th><th>Capacité (t)</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Marché</th><th>Lieu</th><th>Type</th><th>Actions</th></tr></thead>
           <tbody>
           @for (m of marches(); track m.idMarche) {
           <tr>
             <td><strong>{{ m.nomMarche }}</strong></td>
-            <td>{{ m.lieuMarche }}</td>
-            <td><span class="pill-oignon">{{ m.typeMarche || '—' }}</span></td>
-            <td>{{ m.capaciteStockage | number:'1.0-0' }} t</td>
+            <td>{{ m.lieu }}</td>
+            <td><span class="pill-oignon">{{ m.type || '—' }}</span></td>
             <td>
               <div style="display:flex;gap:6px">
                 <button class="action-btn action-edit" (click)="ouvrirModifierMarche(m)"><i class="fas fa-pen"></i></button>
@@ -218,6 +263,7 @@
           </tbody>
         </table>
       </div>
+
       <div style="margin-top:20px">
         <div class="table-header-dec">Dernières collectes par marché</div>
         <div class="table-wrap">
@@ -230,7 +276,7 @@
               <td>{{ c.lieuMarche }}</td>
               <td><span class="pill-oignon">🧅 {{ c.produit | titlecase }}</span></td>
               <td><strong style="color:#1b5e20">{{ c.prixUnitaire | number:'1.0-0' }} F</strong></td>
-              <td>{{ (c.quantiteDisponible / 1000) | number:'1.1-1' }} t</td>
+              <td>{{ c.quantiteDisponible }} t</td>
               <td style="font-size:12px;color:#7a9a7a">{{ c.dateCollecte }}</td>
               <td style="font-size:12px">{{ c.prenomEnqueteur }} {{ c.nomEnqueteur }}</td>
             </tr>
@@ -254,6 +300,7 @@
           <i class="fas fa-plus"></i> Ajouter un enquêteur
         </button>
       </div>
+
       @if (showFormEnqueteur) {
       <div class="form-card-dec">
         <div class="form-title-dec">👤 Nouvel enquêteur</div>
@@ -272,6 +319,7 @@
         </div>
       </div>
       }
+
       @if (showFormModifierEnqueteur && enqueteurAModifier) {
       <div class="form-card-dec" style="border-color:#1b5e20">
         <div class="form-title-dec">✏️ Modifier l'enquêteur</div>
@@ -288,6 +336,7 @@
         </div>
       </div>
       }
+
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Enquêteur</th><th>Email</th><th>Organisation</th><th>Zone</th><th>Statut</th><th>Actions</th></tr></thead>
@@ -326,24 +375,18 @@
     </div>
     }
 
-    <!-- ══ PRODUCTION — CARTE + TOP RÉGIONS ══ -->
+    <!-- ══ PRODUCTION ══ -->
     @if (ongletActif === 'production') {
     <div class="scrollable-content">
       <div class="carte-section" style="margin-bottom:16px;">
         <div class="carte-header">
           <span class="carte-title"><i class="fas fa-map"></i> Carte de production — Sénégal</span>
           <div class="carte-legende">
-            <!--<span class="leg-item"><span class="leg-dot" style="background:#1b5e20"></span>Production réelle</span>
-            <span class="leg-item"><span class="leg-dot" style="background:#fff9c4;border:1px solid #f9a825"></span>Prévision ML</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#1b5e20"></span>Production réelle</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#26a69a"></span>Récolte ≈ Prévision</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#ff8f00"></span>En dessous prévision</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#fff9c4;border:1px solid #f9a825"></span>Prévision ML seule</span>
             <span class="leg-item"><span class="leg-dot" style="background:#e8f5e9;border:1px solid #ccc"></span>Pas de données</span>
-          -->
-            <div class="carte-legende">
-              <span class="leg-item"><span class="leg-dot" style="background:#1b5e20"></span>Production réelle</span>
-              <span class="leg-item"><span class="leg-dot" style="background:#26a69a"></span>Récolte ≈ Prévision</span>
-              <span class="leg-item"><span class="leg-dot" style="background:#ff8f00"></span>En dessous prévision</span>
-              <span class="leg-item"><span class="leg-dot" style="background:#fff9c4;border:1px solid #f9a825"></span>Prévision ML seule</span>
-              <span class="leg-item"><span class="leg-dot" style="background:#e8f5e9;border:1px solid #ccc"></span>Pas de données</span>
-            </div>
           </div>
         </div>
         <div id="map-production" style="width:100%;height:420px;background:#f5f5f0;"></div>
@@ -370,98 +413,106 @@
     </div>
     }
 
-    <!-- ══ PRÉVISIONS ══ -->
-    @if (ongletActif === 'previsions') {
-    <div class="scrollable-content">
-      <div class="page-header-dec">
-        <h1><i class="fas fa-robot"></i> Prévisions de production</h1>
-        <p>Cumul ML par mois · {{ prevision()?.periodeRecolte || 'Campagne 2026' }}</p>
-      </div>
-      @if (prevision()) {
-      <div class="prev-total-card">
-        <div class="prev-total-left">
-          <div class="prev-total-lbl">Production totale prévue</div>
-          <div class="prev-total-val">{{ prevision()!.productionPrevueTonnes.toFixed(1) }} t</div>
-          <div class="prev-total-sub">{{ prevision()!.periodeRecolte }}</div>
-        </div>
-        <div class="prev-total-right">
-          <div class="prev-total-lbl">Stock actuel</div>
-          <div class="prev-total-val" style="color:#1565c0">{{ getStockTotal() }}</div>
-          <div class="prev-total-sub">{{ getMoisCouverts() }} de consommation</div>
-        </div>
-      </div>
-      <div class="mois-grid">
-        @for (m of getMoisPrevisions(); track m.mois) {
-        <div [class]="'mois-card mois-' + m.classe">
-          <div class="mois-nom">{{ m.mois }}</div>
-          <div class="mois-val">{{ m.valeur.toFixed(2) }} t</div>
-          <div [class]="'mois-statut statut-' + m.classe">{{ m.statut }}</div>
-          <div class="mois-barre-bg"><div class="mois-barre-fill" [style.width.%]="getPourcentageBarre(m.valeur)" [class]="'barre-' + m.classe"></div></div>
-          <div class="mois-conseil">{{ m.conseil }}</div>
-        </div>
-        }
-      </div>
-      <div class="recommandation-card">
-        <div class="recommandation-titre"><i class="fas fa-lightbulb"></i> Recommandation ARM</div>
-        <div class="recommandation-body">
-          @for (m of getMoisPrevisions(); track m.mois) {
-          <div [class]="'recommandation-row row-' + m.classe">
-            <span class="rec-mois">{{ m.mois }}</span>
-            <span class="rec-val">{{ m.valeur.toFixed(2) }} t</span>
-            <span [class]="'rec-statut statut-' + m.classe">{{ m.statut }}</span>
-            <span class="rec-conseil">{{ m.conseil }}</span>
-          </div>
-          }
-        </div>
-      </div>
-      @if (prevision()!.productionParRegion) {
-      <div class="table-wrap" style="margin-top:16px">
-        <div class="table-header-dec">Prévisions par région</div>
-        <table class="data-table">
-          <thead><tr><th>Région</th><th>Production prévue (t)</th><th>Part (%)</th></tr></thead>
-          <tbody>
-          @for (entry of prevision()!.productionParRegion | keyvalue; track entry.key) {
-          <tr>
-            <td><strong>📍 {{ entry.key }}</strong></td>
-            <td><strong style="color:#1b5e20">{{ (+entry.value).toFixed(2) }} t</strong></td>
-            <td>{{ ((+entry.value / prevision()!.productionPrevueTonnes) * 100).toFixed(1) }}%</td>
-          </tr>
-          }
-          </tbody>
-        </table>
-      </div>
-      }
-      }
-    </div>
-    }
-
     <!-- ══ ALERTES ══ -->
     @if (ongletActif === 'alertes') {
     <div class="scrollable-content">
       <div class="page-header-dec">
-        <h1><i class="fas fa-bell"></i> Alertes & Notifications</h1>
-        <p>{{ getNotifications().length }} alerte(s) active(s)</p>
+        <h1><i class="fas fa-bell"></i> Alertes & Décisions</h1>
+        <p>Analyse en temps réel — campagne oignon 2026</p>
       </div>
-      <div class="alertes-list">
-        @for (n of getNotifications(); track $index) {
-        <div [class]="'alerte-card alerte-' + n.type">
-          <div class="alerte-icon-wrap"><i [class]="'fas ' + n.icon"></i></div>
-          <div class="alerte-content">
-            <div class="alerte-titre">{{ n.titre }}</div>
-            <div class="alerte-message">{{ n.message }}</div>
-            <div class="alerte-temps">{{ n.temps }}</div>
-          </div>
-          <div [class]="'alerte-niveau niveau-badge-' + n.type">
-            {{ n.type === 'success' ? 'OK' : n.type === 'warning' ? 'ATTENTION' : n.type === 'danger' ? 'CRITIQUE' : 'INFO' }}
-          </div>
+
+      @for (alerte of alertes(); track alerte.id) {
+      <div [class]="'alerte-card alerte-' + getTypeAlerte(alerte)" style="margin-bottom:16px">
+        <div class="alerte-icon-wrap">
+          <i [class]="'fas ' + getIconeAlerte(alerte)"></i>
         </div>
-        }
-        @if (getNotifications().length === 0) {
-        <div class="empty-state"><i class="fas fa-check-circle"></i><p>Aucune alerte active</p></div>
-        }
+        <div class="alerte-content">
+          <div class="alerte-titre">{{ alerte.titre }}</div>
+          <div class="alerte-message">{{ alerte.message }}</div>
+          <div class="alerte-temps">{{ alerte.recommandation }}</div>
+        </div>
+        <div [class]="'alerte-niveau niveau-badge-' + getTypeAlerte(alerte)">
+          {{ alerte.dateCreation | date:'dd/MM/yyyy HH:mm' }}
+        </div>
       </div>
+      }
+
+      @if (alertes().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-check-circle"></i>
+        <p>Aucune alerte active</p>
+      </div>
+      }
     </div>
     }
 
   </main>
+
+  <!-- ══ MODAL PROFIL ══ -->
+  @if (showProfilPopup) {
+  <div class="modal-overlay" (click)="toggleProfilPopup()">
+    <div class="modal-profil" (click)="$event.stopPropagation()">
+      <div class="modal-profil-header">
+        <div class="modal-profil-avatar">
+          {{ prenomDecideur().charAt(0) }}{{ nomDecideur().charAt(0) }}
+        </div>
+        <div>
+          <div class="modal-profil-nom">{{ prenomDecideur() }} {{ nomDecideur() }}</div>
+          <div class="modal-profil-role">Décideur ARM</div>
+        </div>
+        <button class="modal-profil-close" (click)="toggleProfilPopup()">✕</button>
+      </div>
+
+      @if (!showFormProfil) {
+      <div style="padding:20px">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#555">
+            <i class="fas fa-user" style="color:#1b5e20;width:16px"></i>
+            {{ prenomDecideur() }} {{ nomDecideur() }}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#555">
+            <i class="fas fa-phone" style="color:#1b5e20;width:16px"></i>
+            {{ telephoneDecideur() || '—' }}
+          </div>
+        </div>
+        <button class="profil-btn-edit" (click)="ouvrirModifierProfil()">
+          <i class="fas fa-pen"></i> Modifier mon profil
+        </button>
+      </div>
+      }
+
+      @if (showFormProfil && profilAModifier) {
+      <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div class="profil-form-group">
+          <label>Prénom</label>
+          <input type="text" [(ngModel)]="profilAModifier.prenom" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Nom</label>
+          <input type="text" [(ngModel)]="profilAModifier.nom" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Téléphone</label>
+          <input type="text" [(ngModel)]="profilAModifier.telephone" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="profilAModifier.email" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Adresse</label>
+          <input type="text" [(ngModel)]="profilAModifier.adresse" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-actions">
+          <button class="profil-btn-cancel" (click)="showFormProfil = false">Annuler</button>
+          <button class="profil-btn-save" (click)="modifierProfil()">
+            <i class="fas fa-save"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
 </div>

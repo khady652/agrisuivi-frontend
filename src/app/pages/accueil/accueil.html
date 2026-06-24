@@ -12,7 +12,7 @@
     <li><a (click)="scrollTo('marches')" style="cursor:pointer">Marchés</a></li>
     <li><a (click)="scrollTo('acteurs')" style="cursor:pointer">Acteurs</a></li>
     <li><a (click)="scrollTo('contact')" style="cursor:pointer">Contact</a></li>
-    <li><a (click)="scrollTo('carte')" style="cursor:pointer">Carte</a></li>
+    <li><a (click)="scrollToCarte()" style="cursor:pointer">Carte</a></li>
   </ul>
   <button class="btn-nav" (click)="allerLogin()">
     <i class="fas fa-sign-in-alt"></i> Se connecter
@@ -20,7 +20,7 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" id="hero">
   <div class="slides-bg">
     <div class="slide-bg active"></div>
     <div class="slide-bg"></div>
@@ -61,8 +61,10 @@
         <span class="hnum-lab">Régions</span>
       </div>
       <div>
-        <span class="hnum-val">+1K</span>
-        <span class="hnum-lab">Agriculteurs</span>
+        <div>
+          <span class="hnum-val">{{ stats().nbAgriculteurs }}</span>
+          <span class="hnum-lab">Agriculteurs</span>
+        </div>
       </div>
       <div>
         <span class="hnum-val">24/7</span>
@@ -74,11 +76,15 @@
 
 <!-- TICKER -->
 <div class="ticker">
-  <div class="ticker-inner" id="ticker">
-    <div class="tick-item"><div class="tdot"></div><span>AgriSuivi — Plateforme nationale de suivi des récoltes maraîchères</span></div>
-    <div class="tick-item"><div class="tdot"></div><span>AgriSuivi — Plateforme nationale de suivi des récoltes maraîchères</span></div>
-    <div class="tick-item"><div class="tdot"></div><span>AgriSuivi — Plateforme nationale de suivi des récoltes maraîchères</span></div>
-    <div class="tick-item"><div class="tdot"></div><span>AgriSuivi — Plateforme nationale de suivi des récoltes maraîchères</span></div>
+  <div class="ticker-inner">
+   @for (p of tickerItems(); track $index) {
+    <div class="tick-item">
+      <div class="tdot"></div>
+      <strong>{{ p.produit }}</strong>
+      <span class="tval">&nbsp;{{ formatNumber(p.prixUnitaire) }} FCFA/kg</span>
+      <span style="opacity:.45;font-size:12px">&nbsp;— {{ p.nomMarche }}</span>
+    </div>
+    }
   </div>
 </div>
 
@@ -108,21 +114,14 @@
       <p class="sec-p">AgriSuivi couvre l'ensemble du territoire sénégalais avec des données fiables.</p>
     </div>
     <div class="stats-4">
+      <!-- Stats banner -->
       <div class="stat-box"><div class="stat-n">14</div><div class="stat-l">Régions couvertes</div></div>
       <div class="stat-box"><div class="stat-n">45</div><div class="stat-l">Départements</div></div>
-      <div class="stat-box"><div class="stat-n">+50</div><div class="stat-l">Marchés suivis</div></div>
-      <div class="stat-box"><div class="stat-n">7</div><div class="stat-l">Types d'acteurs</div></div>
-    </div>
+      <div class="stat-box"><div class="stat-n">{{ nbMarches() }}</div><div class="stat-l">Marchés suivis</div></div>
+      <div class="stat-box"><div class="stat-n">{{ stats().nbAgriculteurs }}</div><div class="stat-l">Agriculteurs</div></div></div>
   </div>
 </section>
-<!-- CARTE SIG -->
-<section class="carte-section" id="carte">
-  <div style="max-width:1200px;margin:0 auto">
-    <div class="sec-tag">Carte SIG</div>
-    <h2 class="sec-h2">Zones de Production</h2>
-    <div id="carte-leaflet" class="carte-container"></div>
-  </div>
-</section>
+
 <!-- MARCHÉS -->
 <section class="marches" id="marches">
   <div class="mar-top">
@@ -130,13 +129,13 @@
       <div class="sec-tag">Marchés</div>
       <h2 class="sec-h2" style="margin-bottom:0">Prix en temps réel</h2>
     </div>
-    <div class="live-pill"><div class="ldot"></div> Mise à jour en continu</div>
+    <div class="live-pill"><div class="ldot"></div> Données en temps réel</div>
   </div>
   <div class="prix-grid" id="prixGrid">
-    @if (prix.length === 0) {
+    @if (prix().length === 0) {
     <div class="no-prix"><span>📊</span><p>Chargement des prix...</p></div>
     }
-    @for (p of prix; track p.idCollecte) {
+    @for (p of prix(); track p.idCollecte) {
     <div class="p-card">
       <div class="p-top">
         <span class="p-name">{{ p.produit }}</span>
@@ -145,10 +144,19 @@
       <div class="p-val">{{ formatNumber(p.prixUnitaire) }}<span class="p-unit"> FCFA/kg</span></div>
       <div class="p-div"></div>
       <div class="p-row"><i class="fas fa-map-marker-alt"></i>{{ p.nomMarche }} — {{ p.lieuMarche }}</div>
-      <div class="p-row"><i class="fas fa-box"></i>Stock : {{ formatNumber(p.quantiteDisponible) }} kg</div>
+      <div class="p-row"><i class="fas fa-box"></i>Stock : {{ formatNumber(p.quantiteDisponible) }} T</div>
       <div class="p-row"><i class="fas fa-calendar-alt"></i>{{ formatDate(p.dateCollecte) }}</div>
     </div>
     }
+  </div>
+</section>
+
+<!-- CARTE SIG -->
+<section class="carte-section" id="carte">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="sec-tag">Carte SIG</div>
+    <h2 class="sec-h2">Zones de Production</h2>
+    <div id="carte-leaflet"></div>
   </div>
 </section>
 
@@ -171,7 +179,6 @@
     <div class="act-card"><span class="act-emoji">⚙️</span><h3 class="act-h3">Administrateur</h3><p class="act-p">Gère les utilisateurs, les coopératives et la configuration du système.</p></div>
   </div>
 </section>
-
 
 <!-- CTA -->
 <section class="cta-sec">
@@ -209,29 +216,15 @@
         <li><a href="#">API publique</a></li>
       </ul>
     </div>
-    <!--<div>
-      <p class="foot-col-t">Contact</p>
-      <ul class="foot-links">
-        <li><a href="#">Ministère Agriculture</a></li>
-        <li><a href="#">ARM Sénégal</a></li>
-        <li><a href="#">Support technique</a></li>
-      </ul>
-    </div>-->
     <div>
       <p class="foot-col-t">Contact</p>
       <ul class="foot-links">
         <li><a href="#">Ministère Agriculture</a></li>
-        <li><a href="mailto:contact@agriculture.gouv.sn">
-          <i class="fas fa-envelope"></i> contact@agriculture.gouv.sn
-        </a></li>
+        <li><a href="mailto:contact@agriculture.gouv.sn"><i class="fas fa-envelope"></i> contact@agriculture.gouv.sn</a></li>
         <li><a href="#">ARM Sénégal</a></li>
-        <li><a href="mailto:contact@arm.gouv.sn">
-          <i class="fas fa-envelope"></i> contact@arm.gouv.sn
-        </a></li>
+        <li><a href="mailto:contact@arm.gouv.sn"><i class="fas fa-envelope"></i> contact@arm.gouv.sn</a></li>
         <li><a href="#">Support technique</a></li>
-        <li><a href="mailto:support@agrisuivi.sn">
-          <i class="fas fa-envelope"></i> gueye@agrisuivi.sn
-        </a></li>
+        <li><a href="mailto:support@agrisuivi.sn"><i class="fas fa-envelope"></i> gueye@agrisuivi.sn</a></li>
       </ul>
     </div>
   </div>

@@ -649,9 +649,15 @@
         <div>
           <div style="font-size:28px;font-weight:800;color:#0a3d0a">{{ (getTotalRecolte() / 1000) | number:'1.1-1' }} t</div>
           <div style="font-size:11px;color:#7a9a7a;margin-top:3px">Production Oignon Globale</div>
-          <div style="display:inline-flex;align-items:center;gap:4px;background:#ffebee;color:#c62828;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px">
-            <i class="fas fa-arrow-down"></i>
-            {{ getTauxGlobal() }}% du prévu · Déficit {{ ((getTotalPrevu() - getTotalRecolte()) / 1000) | number:'1.1-1' }} t
+          <div [style.background]="getTotalRecolte() >= getTotalPrevu() ? '#e8f5e9' : '#ffebee'"
+               [style.color]="getTotalRecolte() >= getTotalPrevu() ? '#1b5e20' : '#c62828'"
+               style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px">
+            <i [class]="getTotalRecolte() >= getTotalPrevu() ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+            {{ getTauxGlobal() }}% du prévu ·
+            <!--{{ getTotalRecolte() >= getTotalPrevu() ? 'Surplus' : 'Déficit' }}
+
+            {{ (((getTotalRecolte() >= getTotalPrevu() ? getTotalRecolte() - getTotalPrevu() : getTotalPrevu() - getTotalRecolte())) / 1000) | number:'1.1-1' }} t
+             -->
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">

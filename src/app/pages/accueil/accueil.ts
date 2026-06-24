@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy,NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Public } from '../../services/public';
 import * as L from 'leaflet';
+import { signal } from '@angular/core';
 
 @Component({
     selector: 'app-accueil',
@@ -13,29 +14,39 @@ import * as L from 'leaflet';
 })
 export class Accueil implements OnInit, OnDestroy {
 
-    prix: any[] = [];
+    //prix: any[] = [];
+    //tickerItems: any[] = [];
+    zonesProduction: any[] = [];
     currentSlide = 0;
     private slideInterval: any;
+    private map: any = null;
 
     constructor(
-        private router: Router,
-        private publicService: Public
+       private router: Router,
+           private publicService: Public,
+           private ngZone: NgZone
     ) {}
 
     ngOnInit() {
         this.startSlideshow();
-        this.chargerPrix();
-        this.navbarScroll();
-        setTimeout(() => {
-            console.log('Init carte...');
-            this.initCarte();
-        }, 1000);
+            this.chargerPrix();
+            this.chargerZones();
+            this.chargerStats();
+            this.navbarScroll();
+            //setTimeout(() => this.initCarte(), 1000);
     }
 
     ngOnDestroy() {
         clearInterval(this.slideInterval);
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
     }
+stats = signal<any>({ nbAgriculteurs: 0, nbEnqueteurs: 0, nbCooperatives: 0 });
+nbMarches = signal<number>(0);
 
+    // ── SLIDESHOW ─────────────────────────────────────────
     startSlideshow() {
         this.slideInterval = setInterval(() => {
             this.goSlide(this.currentSlide + 1);
@@ -51,7 +62,18 @@ export class Accueil implements OnInit, OnDestroy {
         slides[this.currentSlide]?.classList.add('active');
         dots[this.currentSlide]?.classList.add('on');
     }
+   chargerStats() {
+       this.publicService.getStats().subscribe({
+           next: (data: any) => this.stats.set(data),
+           error: () => {}
+       });
 
+       this.publicService.getMarches().subscribe({
+           next: (data: any[]) => this.nbMarches.set(data.length),
+           error: () => {}
+       });
+   }
+    // ── NAVBAR ────────────────────────────────────────────
     navbarScroll() {
         const nav = document.getElementById('nav');
         nav?.classList.add('solid');
@@ -61,30 +83,31 @@ export class Accueil implements OnInit, OnDestroy {
         });
     }
 
+    // ── PRIX MARCHÉS ──────────────────────────────────────
+    prix = signal<any[]>([]);
+    tickerItems = signal<any[]>([]);
+
     chargerPrix() {
         this.publicService.getPrixMarches().subscribe({
             next: (data: any[]) => {
-                this.prix = data;
-                setTimeout(() => this.updateTicker(), 100);
+                this.prix.set(data);
+                this.tickerItems.set([...data, ...data]);
             },
             error: () => console.error('Erreur chargement prix')
         });
     }
-
-    updateTicker() {
-        const tick = document.getElementById('ticker');
-        if (!tick || !this.prix.length) return;
-        const items = [...this.prix, ...this.prix].map(p =>
-            `<div class="tick-item">
-                <div class="tdot"></div>
-                <strong>${p.produit}</strong>
-                <span class="tval">&nbsp;${new Intl.NumberFormat('fr-FR').format(p.prixUnitaire)} FCFA/kg</span>
-                <span style="opacity:.45;font-size:12px">&nbsp;— ${p.nomMarche}</span>
-             </div>`
-        ).join('');
-        tick.innerHTML = items;
+    // ── ZONES PRODUCTION ──────────────────────────────────
+    chargerZones() {
+        this.publicService.getZonesProduction().subscribe({
+            next: (geojson: any) => {
+                this.zonesProduction = geojson.features || [];
+                this.initCarte();
+            },
+            error: () => {}
+        });
     }
 
+    // ── NAVIGATION ────────────────────────────────────────
     allerLogin() {
         this.router.navigate(['/login']);
     }
@@ -93,6 +116,15 @@ export class Accueil implements OnInit, OnDestroy {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     }
 
+    scrollToCarte() {
+        const el = document.getElementById('carte');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => this.initCarte(), 600);
+        }
+    }
+
+    // ── FORMAT ────────────────────────────────────────────
     formatNumber(n: number): string {
         return new Intl.NumberFormat('fr-FR').format(n);
     }
@@ -103,82 +135,95 @@ export class Accueil implements OnInit, OnDestroy {
         });
     }
 
+    // ── CARTE ─────────────────────────────────────────────
     initCarte() {
-        const el = document.getElementById('carte-leaflet');
-        if (!el) {
-            console.error('Element carte-leaflet introuvable !');
+        if (this.map) {
+            this.map.invalidateSize();
             return;
         }
 
-        const map = L.map('carte-leaflet', {
+        const el = document.getElementById('carte-leaflet');
+        if (!el) {
+            setTimeout(() => this.initCarte(), 500);
+            return;
+        }
+
+        this.map = L.map('carte-leaflet', {
             center: [14.4974, -14.4524],
-            zoom: 7
+            zoom: 7,
+            zoomControl: true,
+            attributionControl: false,
+            minZoom: 6,
+            maxZoom: 10,
+            maxBounds: [[12.0, -17.8], [16.9, -11.2]],
+            maxBoundsViscosity: 1.0
         });
 
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            { attribution: '© OpenStreetMap' }
-        ).addTo(map);
+        setTimeout(() => this.map.invalidateSize(), 100);
 
-        this.publicService.getZonesProduction().subscribe({
-            next: (geojson) => {
-                console.log('GeoJSON reçu:', geojson);
-                if (!geojson?.features?.length) {
-                    console.warn('Aucune feature dans le GeoJSON');
-                    return;
-                }
-                geojson.features.forEach((f: any) => {
-                    const coords = f.geometry.coordinates;
-                    const props = f.properties;
-                    const production = props.production || 0;
+        fetch('assets/geojson/SEN.geo.json')
+            .then(res => res.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: (feature: any) => ({
+                        color: '#1b5e20',
+                        weight: 1.5,
+                        fillColor: this.getCouleurRegion(
+                            feature?.properties?.name || ''
+                        ),
+                        fillOpacity: 0.65
+                    }),
+                    onEachFeature: (feature: any, layer: any) => {
+                        const nom = feature?.properties?.name || '';
+                        const zone = this.zonesProduction
+                            .find((z: any) => z.properties.nomRegion === nom);
+                        const production = zone?.properties?.production || 0;
 
-                    const couleur = production > 10000 ? '#1b5e20'
-                                  : production > 5000  ? '#2e7d32'
-                                  : production > 0     ? '#66bb6a'
-                                  : '#bdbdbd';
-
-                    const rayon = production > 10000 ? 25
-                                : production > 5000  ? 18
-                                : production > 0     ? 12
-                                : 8;
-
-                    L.circleMarker(
-                        [coords[1], coords[0]],
-                        {
-                            radius: rayon,
-                            fillColor: couleur,
-                            color: '#ffffff',
-                            weight: 2,
-                            fillOpacity: 0.85
-                        }
-                    )
-                    .bindPopup(`
-                        <div style="font-family:'Montserrat',sans-serif;min-width:180px">
-                            <h3 style="color:#0a3d0a;margin:0 0 10px;font-size:16px">
-                                📍 ${props.nomRegion}
-                            </h3>
-                            <p style="margin:5px 0;font-size:13px">
+                        layer.bindPopup(`
+                            <b style="color:#0a3d0a;font-size:13px">📍 ${nom}</b><br>
+                            <span style="font-size:11px">
                                 🌱 Production : <b>${new Intl.NumberFormat('fr-FR').format(production)} kg</b>
-                            </p>
-                            <p style="margin:5px 0;font-size:13px">
-                                🌍 Surface : <b>${new Intl.NumberFormat('fr-FR').format(props.surfaceCultivee || 0)} m²</b>
-                            </p>
-                            <p style="margin:5px 0;font-size:13px">
-                                👥 Population : <b>${new Intl.NumberFormat('fr-FR').format(props.population || 0)}</b>
-                            </p>
-                        </div>
-                    `)
-                    .bindTooltip(props.nomRegion, {
-                        permanent: true,
-                        direction: 'top',
-                        className: 'region-tooltip'
-                    })
-                    .addTo(map);
-                });
+                            </span>
+                        `);
+                        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.9 }));
+                        layer.on('mouseout',  () => layer.setStyle({ fillOpacity: 0.65 }));
 
-                setTimeout(() => map.invalidateSize(), 300);
-            },
-            error: (err) => console.error('Erreur carte:', err)
-        });
+                        const center = (layer as any).getBounds().getCenter();
+                        L.marker(center, {
+                            icon: L.divIcon({
+                                className: '',
+                                html: `<div style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#0a3d0a;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),-1px -1px 2px rgba(255,255,255,0.9);pointer-events:none;">${nom}</div>`,
+                                iconSize: [80, 20],
+                                iconAnchor: [40, 10]
+                            }),
+                            interactive: false
+                        }).addTo(this.map);
+                    }
+                }).addTo(this.map);
+
+                this.map.fitBounds([[12.2, -17.7], [16.7, -11.3]]);
+                setTimeout(() => this.map.invalidateSize(), 300);
+            })
+            .catch(err => console.error('Erreur GeoJSON:', err));
     }
+
+    // ── COULEUR RÉGION ────────────────────────────────────
+    getCouleurRegion(nom: string): string {
+        const zone = this.zonesProduction
+            .find((z: any) => z.properties.nomRegion === nom);
+        const production = zone?.properties?.production || 0;
+        const max = Math.max(
+            ...this.zonesProduction.map((z: any) => z.properties.production || 0),
+            1
+        );
+
+        if (production === 0) return '#e8f5e9';
+        const pct = production / max;
+        if (pct >= 0.8) return '#1b5e20';
+        if (pct >= 0.6) return '#2e7d32';
+        if (pct >= 0.4) return '#388e3c';
+        if (pct >= 0.2) return '#43a047';
+        return '#81c784';
+    }
+
 }

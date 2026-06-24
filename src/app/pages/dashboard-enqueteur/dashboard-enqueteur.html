@@ -1,1 +1,352 @@
-<p>dashboard-enqueteur works!</p>
+<div class="enq-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="enq-sidebar">
+    <div class="enq-sidebar-logo">
+      <div class="enq-logo-box">🌱</div>
+      <div>
+        <span class="enq-logo-name">AgriSuivi</span>
+        <span class="enq-logo-sub">Enquêteur</span>
+      </div>
+    </div>
+
+    <div class="enq-nav-label">Navigation</div>
+    <div class="enq-nav-item" [class.active]="ongletActif==='dashboard'" (click)="changerOnglet('dashboard')">
+      <i class="fas fa-home"></i><span>Dashboard</span>
+    </div>
+    <div class="enq-nav-item" [class.active]="ongletActif==='collectes'" (click)="changerOnglet('collectes')">
+      <i class="fas fa-clipboard-list"></i><span>Mes collectes</span>
+    </div>
+    <div class="enq-nav-item" [class.active]="ongletActif==='stocks'" (click)="changerOnglet('stocks')">
+      <i class="fas fa-boxes"></i><span>Suivi stocks</span>
+    </div>
+
+    <div class="enq-sidebar-bottom">
+      @if (profil()) {
+      <div class="enq-profil-card">
+        <div class="enq-profil-avatar">{{ getInitiales(profil()!.nom, profil()!.prenom) }}</div>
+        <div class="enq-profil-info">
+          <div class="enq-profil-nom">{{ profil()!.prenom }} {{ profil()!.nom }}</div>
+          <div class="enq-profil-role">{{ profil()!.zoneAffectation || 'Enquêteur' }}</div>
+        </div>
+        <button class="enq-logout-btn" (click)="deconnecter()" title="Déconnexion">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+      }
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="enq-main">
+
+    <!-- TOPBAR -->
+    <div class="enq-topbar">
+      <div>
+        <div class="enq-topbar-title">
+          {{ ongletActif === 'dashboard' ? 'Dashboard' :
+          ongletActif === 'collectes' ? 'Mes collectes' :
+          'Suivi des stocks' }}
+        </div>
+        <div class="enq-topbar-sub">{{ profil()?.organisation || 'Enquêteur Marché' }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        @if (profil()) {
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:500;color:white">{{ profil()!.prenom }} {{ profil()!.nom }}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)">Enquêteur Marché</div>
+        </div>
+        <div class="enq-avatar-top">{{ getInitiales(profil()!.nom, profil()!.prenom) }}</div>
+        }
+      </div>
+    </div>
+
+    <!-- ══ DASHBOARD ══ -->
+    @if (ongletActif === 'dashboard') {
+    <div class="enq-scrollable">
+
+      <div class="enq-kpi-grid">
+        <div class="enq-kpi enq-kpi-green">
+          <div class="enq-kpi-icon"><i class="fas fa-clipboard-list"></i></div>
+          <div class="enq-kpi-info">
+            <div class="enq-kpi-lbl">Collectes ce mois</div>
+            <div class="enq-kpi-val">{{ getNbCollectesMois() }}</div>
+            <div class="enq-kpi-sub">Total : {{ collectes().length }}</div>
+          </div>
+        </div>
+        <div class="enq-kpi enq-kpi-blue">
+          <div class="enq-kpi-icon"><i class="fas fa-coins"></i></div>
+          <div class="enq-kpi-info">
+            <div class="enq-kpi-lbl">Prix moyen oignon</div>
+            <div class="enq-kpi-val">{{ formatNumber(getPrixMoyen()) }} F</div>
+            <div class="enq-kpi-sub">Par kg</div>
+          </div>
+        </div>
+        <div class="enq-kpi enq-kpi-orange">
+          <div class="enq-kpi-icon"><i class="fas fa-boxes"></i></div>
+          <div class="enq-kpi-info">
+            <div class="enq-kpi-lbl">Stock total</div>
+            <div class="enq-kpi-val">{{ formatNumber(getStockTotal()) }} kg</div>
+            <div class="enq-kpi-sub">Disponible</div>
+          </div>
+        </div>
+        <div class="enq-kpi enq-kpi-purple">
+          <div class="enq-kpi-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="enq-kpi-info">
+            <div class="enq-kpi-lbl">Marchés couverts</div>
+            <div class="enq-kpi-val">{{ getDerniereCollecteParMarche().length }}</div>
+            <div class="enq-kpi-sub">{{ profil()?.zoneAffectation || 'Ma zone' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px">
+
+        <!-- Dernières collectes par marché -->
+        <div class="enq-table-wrap">
+          <div class="enq-table-header">
+            <span><i class="fas fa-building" style="color:#1b5e20"></i> Marchés — Dernières collectes</span>
+            <button class="enq-btn-primary" (click)="changerOnglet('collectes'); showFormCollecte = true">
+              <i class="fas fa-plus"></i> Nouvelle collecte
+            </button>
+          </div>
+          <table class="enq-data-table">
+            <thead><tr><th>Marché</th><th>Prix</th><th>Stock</th><th>Date</th></tr></thead>
+            <tbody>
+            @for (c of getDerniereCollecteParMarche(); track c.idCollecte) {
+            <tr>
+              <td>
+                <div style="font-weight:500">{{ c.nomMarche }}</div>
+                <div style="font-size:11px;color:#888">{{ c.lieuMarche }}</div>
+              </td>
+              <td>
+                <strong style="color:#1b5e20">{{ formatNumber(c.prixUnitaire) }} F/kg</strong>
+                @if (getPrixTendance(c.idMarche) > 0) {
+                <span style="color:#2d9e2d;font-size:10px;margin-left:4px">↑</span>
+                } @else if (getPrixTendance(c.idMarche) < 0) {
+                <span style="color:#c62828;font-size:10px;margin-left:4px">↓</span>
+                }
+              </td>
+              <td style="font-size:12px">{{ (c.quantiteDisponible / 1000) | number:'1.1-1' }} t</td>
+              <td style="font-size:11px;color:#888">{{ c.dateCollecte }}</td>
+            </tr>
+            }
+            @if (getDerniereCollecteParMarche().length === 0) {
+            <tr><td colspan="4" style="text-align:center;color:#888;padding:20px">Aucune collecte</td></tr>
+            }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Évolution prix par marché -->
+        <div class="enq-table-wrap">
+          <div class="enq-table-header">
+            <span><i class="fas fa-chart-line" style="color:#1565c0"></i> Évolution des prix</span>
+          </div>
+          <div style="padding:12px;display:flex;flex-direction:column;gap:12px">
+            @for (c of getDerniereCollecteParMarche(); track c.idCollecte; let i = $index) {
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span style="font-size:12px;font-weight:500;color:#0a3d0a">{{ c.nomMarche }}</span>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <span style="font-size:12px;font-weight:600;color:#1b5e20">{{ formatNumber(c.prixUnitaire) }} F</span>
+                  @if (getPrixTendance(c.idMarche) > 0) {
+                  <span style="font-size:10px;color:#2d9e2d">↑ +{{ getPrixTendance(c.idMarche) }}F</span>
+                  } @else if (getPrixTendance(c.idMarche) < 0) {
+                  <span style="font-size:10px;color:#c62828">↓ {{ getPrixTendance(c.idMarche) }}F</span>
+                  } @else {
+                  <span style="font-size:10px;color:#888">stable</span>
+                  }
+                </div>
+              </div>
+              <div style="height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden">
+                <div [style.width.%]="(c.quantiteDisponible / getMaxStock()) * 100"
+                     style="height:100%;border-radius:3px"
+                     [style.background]="i === 0 ? '#2d9e2d' : i === 1 ? '#1565c0' : i === 2 ? '#f57f17' : '#7b1fa2'">
+                </div>
+              </div>
+            </div>
+            }
+            @if (getDerniereCollecteParMarche().length === 0) {
+            <div style="text-align:center;color:#888;padding:20px;font-size:12px">Aucune donnée</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ COLLECTES ══ -->
+    @if (ongletActif === 'collectes') {
+    <div class="enq-scrollable">
+      <div class="enq-page-header">
+        <div>
+          <h1><i class="fas fa-clipboard-list"></i> Mes collectes</h1>
+          <p>{{ collectes().length }} collecte(s) enregistrée(s)</p>
+        </div>
+        <button class="enq-btn-primary" (click)="showFormCollecte = !showFormCollecte; showFormModifierCollecte = false">
+          <i class="fas fa-plus"></i> Nouvelle collecte
+        </button>
+      </div>
+
+      @if (showFormCollecte) {
+      <div class="enq-form-card">
+        <div class="enq-form-title">📋 Nouvelle collecte</div>
+        <div class="enq-form-grid">
+          <div class="enq-form-group">
+            <label>Date de collecte *</label>
+            <input type="date" [(ngModel)]="nouvelleCollecte.dateCollecte" class="enq-form-input"/>
+          </div>
+          <div class="enq-form-group">
+            <label>Produit *</label>
+            <select [(ngModel)]="nouvelleCollecte.produit" class="enq-form-input">
+              <option value="oignon">Oignon</option>
+              <option value="tomate">Tomate</option>
+              <option value="pomme de terre">Pomme de terre</option>
+            </select>
+          </div>
+          <div class="enq-form-group">
+            <label>Marché *</label>
+            <!--<select [(ngModel)]="nouvelleCollecte.idMarche" class="enq-form-input">
+              <option [value]="0">Sélectionner un marché</option>
+              @for (m of marches(); track m.idMarche) {
+              <option [value]="m.idMarche">{{ m.nomMarche }} — {{ m.lieu }}</option>
+              }
+            </select>-->
+            <select [(ngModel)]="nouvelleCollecte.idMarche" class="enq-form-input">
+              <option [value]="0">Sélectionner un marché</option>
+              @for (m of marches(); track m.idMarche) {
+              @if (!profil()?.zoneAffectation ||
+              m.lieu.toLowerCase() === profil()?.zoneAffectation?.toLowerCase()) {
+              <option [value]="m.idMarche">{{ m.nomMarche }} — {{ m.lieu }}</option>
+              }
+              }
+            </select>
+          </div>
+          <div class="enq-form-group">
+            <label>Prix unitaire (F/kg) *</label>
+            <input type="number" [(ngModel)]="nouvelleCollecte.prixUnitaire" class="enq-form-input" placeholder="Ex: 500"/>
+          </div>
+          <div class="enq-form-group">
+            <label>Quantité disponible (T) *</label>
+            <input type="number" [(ngModel)]="nouvelleCollecte.quantiteDisponible" class="enq-form-input" placeholder="Ex: 5000"/>
+          </div>
+        </div>
+        <div class="enq-form-actions">
+          <button class="enq-btn-cancel" (click)="showFormCollecte = false">Annuler</button>
+          <button class="enq-btn-primary" (click)="ajouterCollecte()"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
+      </div>
+      }
+
+      @if (showFormModifierCollecte && collecteAModifier) {
+      <div class="enq-form-card" style="border-color:#1b5e20">
+        <div class="enq-form-title">✏️ Modifier la collecte</div>
+        <div class="enq-form-grid">
+          <div class="enq-form-group">
+            <label>Date de collecte *</label>
+            <input type="date" [(ngModel)]="collecteAModifier.dateCollecte" class="enq-form-input"/>
+          </div>
+          <div class="enq-form-group">
+            <label>Prix unitaire (F/kg) *</label>
+            <input type="number" [(ngModel)]="collecteAModifier.prixUnitaire" class="enq-form-input"/>
+          </div>
+          <div class="enq-form-group">
+            <label>Quantité disponible (kg) *</label>
+            <input type="number" [(ngModel)]="collecteAModifier.quantiteDisponible" class="enq-form-input"/>
+          </div>
+        </div>
+        <div class="enq-form-actions">
+          <button class="enq-btn-cancel" (click)="showFormModifierCollecte = false; collecteAModifier = null">Annuler</button>
+          <button class="enq-btn-primary" (click)="modifierCollecte()"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
+      </div>
+      }
+
+      <div class="enq-table-wrap">
+        <table class="enq-data-table">
+          <thead>
+          <tr><th>Date</th><th>Produit</th><th>Marché</th><th>Prix (F/kg)</th><th>Stock (kg)</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+          @for (c of collectes(); track c.idCollecte) {
+          <tr>
+            <td style="font-size:12px;color:#888">{{ c.dateCollecte }}</td>
+            <td><span class="enq-pill">🧅 {{ c.produit | titlecase }}</span></td>
+            <td>
+              <div style="font-weight:500">{{ c.nomMarche }}</div>
+              <div style="font-size:11px;color:#888">{{ c.lieuMarche }}</div>
+            </td>
+            <td><strong style="color:#1b5e20">{{ formatNumber(c.prixUnitaire) }} F</strong></td>
+            <td>{{ formatNumber(c.quantiteDisponible) }} kg</td>
+            <td>
+              <button class="enq-action-edit" (click)="ouvrirModifierCollecte(c)">
+                <i class="fas fa-pen"></i>
+              </button>
+            </td>
+          </tr>
+          }
+          @if (collectes().length === 0) {
+          <tr><td colspan="6" style="text-align:center;color:#888;padding:30px">Aucune collecte enregistrée</td></tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- ══ STOCKS ══ -->
+    @if (ongletActif === 'stocks') {
+    <div class="enq-scrollable">
+      <div class="enq-page-header">
+        <div>
+          <h1><i class="fas fa-boxes"></i> Suivi des stocks</h1>
+          <p>Stock disponible par marché</p>
+        </div>
+      </div>
+
+      <div class="enq-table-wrap">
+        <table class="enq-data-table">
+          <thead>
+          <tr><th>Marché</th><th>Lieu</th><th>Dernier prix</th><th>Stock disponible</th><th>Dernière collecte</th><th>Tendance</th></tr>
+          </thead>
+          <tbody>
+          @for (c of getDerniereCollecteParMarche(); track c.idCollecte; let i = $index) {
+          <tr>
+            <td><strong>{{ c.nomMarche }}</strong></td>
+            <td style="font-size:12px;color:#888">{{ c.lieuMarche }}</td>
+            <td><strong style="color:#1b5e20">{{ formatNumber(c.prixUnitaire) }} F/kg</strong></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;min-width:80px">
+                  <div [style.width.%]="(c.quantiteDisponible / getMaxStock()) * 100"
+                       style="height:100%;border-radius:3px"
+                       [style.background]="i === 0 ? '#2d9e2d' : i === 1 ? '#1565c0' : '#f57f17'">
+                  </div>
+                </div>
+                <span style="font-size:12px;font-weight:500">{{ formatNumber(c.quantiteDisponible) }} kg</span>
+              </div>
+            </td>
+            <td style="font-size:11px;color:#888">{{ c.dateCollecte }}</td>
+            <td>
+              @if (getPrixTendance(c.idMarche) > 0) {
+              <span style="color:#2d9e2d;font-size:12px;font-weight:500">↑ +{{ getPrixTendance(c.idMarche) }} F</span>
+              } @else if (getPrixTendance(c.idMarche) < 0) {
+              <span style="color:#c62828;font-size:12px;font-weight:500">↓ {{ getPrixTendance(c.idMarche) }} F</span>
+              } @else {
+              <span style="color:#888;font-size:12px">Stable</span>
+              }
+            </td>
+          </tr>
+          }
+          @if (getDerniereCollecteParMarche().length === 0) {
+          <tr><td colspan="6" style="text-align:center;color:#888;padding:30px">Aucune donnée</td></tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+  </main>
+</div>

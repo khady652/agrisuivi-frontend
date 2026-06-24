@@ -1,6 +1,7 @@
-import { Component, OnInit, signal, AfterViewInit } from '@angular/core';
+import { Component, OnInit, signal, AfterViewInit} from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NgApexchartsModule } from 'ng-apexcharts';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
@@ -12,15 +13,16 @@ import {
   Prevision,
   Notification,
   Enqueteur,
-  Marche
+  Marche,
+  AlerteDecideur
 } from '../../models/decideur';
 
-
 import * as L from 'leaflet';
+
 @Component({
   selector: 'app-dashboard-decideur',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgApexchartsModule],
   templateUrl: './dashboard-decideur.html',
   styleUrls: ['./dashboard-decideur.css']
 })
@@ -34,6 +36,10 @@ export class DashboardDecideur implements OnInit, AfterViewInit {
 
   nomDecideur = signal('');
   prenomDecideur = signal('');
+  telephoneDecideur = signal('');
+  adresseDecideur = signal('');
+  emailDecideur = signal('');
+
   message = '';
   messageType = 'success';
   showNotifDropdown = false;
@@ -45,14 +51,27 @@ export class DashboardDecideur implements OnInit, AfterViewInit {
   statsParRegion = signal<{ [key: string]: number }>({});
   marches = signal<Marche[]>([]);
   enqueteurs = signal<Enqueteur[]>([]);
+  alertes = signal<AlerteDecideur[]>([]);
+  nbAlertesNonLues = signal<number>(0);
+  donneesGraphique = signal<{ mois: string; prixMoyen: number; stockTotal: number }[]>([]);
+
+  chartPrixOptions: any = {
+    series: [],
+    chart: { type: 'line', height: 220, toolbar: { show: false } },
+    xaxis: { categories: [] }
+  };
+
+  chartStockOptions: any = {
+    series: [],
+    chart: { type: 'line', height: 220, toolbar: { show: false } },
+    xaxis: { categories: [] }
+  };
 
   // Formulaire marché
   showFormMarche = false;
   showFormModifierMarche = false;
   marcheAModifier: any = null;
-  nouveauMarche = {
-    nomMarche: '', lieuMarche: '', typeMarche: '', capaciteStockage: 0
-  };
+  nouveauMarche = { nomMarche: '', lieu: '', type: '' };
 
   // Formulaire enquêteur
   showFormEnqueteur = false;
@@ -63,10 +82,14 @@ export class DashboardDecideur implements OnInit, AfterViewInit {
     organisation: '', zoneAffectation: '', adresse: ''
   };
 
- /* private map: any = null;
-  private markersLayer: any = null;
- */
- private mapProduction: any = null;
+  // Profil
+  showProfilPopup = false;
+  showFormProfil = false;
+  profilAModifier: any = null;
+  idDecideur: number = 0;
+
+  private mapProduction: any = null;
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -76,15 +99,12 @@ export class DashboardDecideur implements OnInit, AfterViewInit {
   ngOnInit() {
     this.chargerProfil();
     this.chargerDonnees();
+    this.chargerDonneesGraphique();
+    this.chargerAlertes();
+    this.chargerNbAlertes();
   }
 
-  /* ngAfterViewInit() {
-    //setTimeout(() => this.initialiserCarte(), 1000);
-    this.initialiserCarte();
-  } */
-ngAfterViewInit(): void {
- // setTimeout(() => this.initialiserCarte(), 500);
-}
+  ngAfterViewInit(): void {}
 
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -97,7 +117,51 @@ ngAfterViewInit(): void {
       `${this.apiUrl}/api/users/decideurs/mon-profil`,
       { headers: this.getHeaders() }
     ).subscribe({
-      next: d => { this.nomDecideur.set(d.nom); this.prenomDecideur.set(d.prenom); },
+      next: d => {
+        this.nomDecideur.set(d.nom);
+        this.prenomDecideur.set(d.prenom);
+        this.idDecideur = d.idUtilisateur;
+        this.telephoneDecideur.set(d.telephone || '');
+        this.adresseDecideur.set(d.adresse || '');
+        this.emailDecideur.set(d.email || '');
+      },
+      error: () => {}
+    });
+  }
+
+  toggleProfilPopup() {
+    this.showProfilPopup = !this.showProfilPopup;
+    this.showFormProfil = false;
+    this.profilAModifier = null;
+  }
+
+  ouvrirModifierProfil() {
+    this.profilAModifier = {
+      nom: this.nomDecideur(),
+      prenom: this.prenomDecideur(),
+      telephone: this.telephoneDecideur(),
+      email: this.emailDecideur(),
+      adresse: this.adresseDecideur()
+    };
+    this.showFormProfil = true;
+  }
+
+  modifierProfil() {
+    console.log('Données envoyées:', this.profilAModifier);
+    console.log('ID Decideur:', this.idDecideur);
+    this.http.put(
+      `${this.apiUrl}/api/users/decideurs/${this.idDecideur}`,
+      this.profilAModifier,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.nomDecideur.set(this.profilAModifier.nom);
+        this.prenomDecideur.set(this.profilAModifier.prenom);
+        this.telephoneDecideur.set(this.profilAModifier.telephone);
+        this.showFormProfil = false;
+        this.showProfilPopup = false;
+        this.profilAModifier = null;
+      },
       error: () => {}
     });
   }
@@ -119,7 +183,6 @@ ngAfterViewInit(): void {
       .subscribe({
         next: d => {
           this.prevision.set(d);
-          // Recharger les couleurs si la carte est déjà initialisée
           if (this.mapProduction) {
             this.mapProduction.eachLayer((layer: any) => {
               if (layer.setStyle) {
@@ -134,6 +197,7 @@ ngAfterViewInit(): void {
         },
         error: () => {}
       });
+
     this.http.get<Marche[]>(`${this.apiUrl}/api/marche/marches`, { headers: this.getHeaders() })
       .subscribe({ next: d => this.marches.set(d), error: () => {} });
 
@@ -141,29 +205,20 @@ ngAfterViewInit(): void {
       .subscribe({ next: d => this.enqueteurs.set(d), error: () => {} });
   }
 
-  /* initialiserCarte() {
-    console.log('initialiserCarte appelée');
-
+  initialiserCarteProduction() {
+    if (this.mapProduction) {
+      this.mapProduction.remove();
+      this.mapProduction = null;
+    }
     if (typeof window === 'undefined') return;
 
-    const el = document.getElementById('map-decideur');
-    console.log('Element map:', el);
+    const el = document.getElementById('map-production');
+    if (!el) return;
+    el.style.height = '420px';
 
-    if (!el) {
-      console.log('Element map-decideur introuvable !');
-      return;
-    }
-
-    if (this.map) {
-      console.log('Carte déjà initialisée');
-      this.map.invalidateSize();
-      return;
-    }
-
-    console.log('Création de la carte...');
-    this.map = L.map('map-decideur', {
+    this.mapProduction = L.map('map-production', {
       center: [14.4974, -14.4524],
-      zoom: 9,
+      zoom: 7,
       zoomControl: true,
       attributionControl: false,
       minZoom: 6,
@@ -172,166 +227,72 @@ ngAfterViewInit(): void {
       maxBoundsViscosity: 1.0
     });
 
-     *//* L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      { maxZoom: 19 }
-    ).addTo(this.map); *//*
-    setTimeout(() => {
-      this.map.invalidateSize();
-    }, 100);
-    this.markersLayer = L.layerGroup().addTo(this.map);
-    console.log('Carte créée, chargement GeoJSON...');
-     *//*const mapEl = document.getElementById('map-decideur');
-    const mapParent = mapEl?.parentElement;
-    if (mapParent && mapEl) {
-      const headerH = mapParent.querySelector('.carte-header')?.clientHeight || 44;
-      mapEl.style.height = (mapParent.clientHeight - headerH) + 'px';
-    } *//*
-fetch('assets/geojson/SEN.geo.json')
-  .then(res => res.json())
-  .then(data => {
-    const geoLayer = L.geoJSON(data, {
-      style: (feature: any) => ({
-        color: '#1b5e20',
-        weight: 1.5,
-        fillColor: this.getCouleurRegion(feature?.properties?.name || ''),
-        fillOpacity: 0.65
-      }),
-      onEachFeature: (feature: any, layer: any) => {
-        const nom = feature?.properties?.name || '';
-        const prod = this.statsParRegion()[nom] || 0;
+    setTimeout(() => this.mapProduction.invalidateSize(), 100);
 
-        // ── Popup au clic ──
-        layer.bindPopup(
-          `<b style="color:#0a3d0a;font-size:13px">${nom}</b><br>` +
-          (prod
-            ? `<span style="font-size:11px">🌾 Production : <b>${(prod/1000).toFixed(1)} t</b></span>`
-            : `<span style="font-size:11px;color:#aaa">Pas de données</span>`)
-        );
-        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.9 }));
-        layer.on('mouseout',  () => layer.setStyle({ fillOpacity: 0.65 }));
-
-        // ── Label nom région au centre ──
-        const center = (layer as any).getBounds().getCenter();
-        L.marker(center, {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="
-              font-family:'Montserrat',sans-serif;
-              font-size:10px;
-              font-weight:700;
-              color:#0a3d0a;
-              text-align:center;
-              white-space:nowrap;
-              text-shadow:1px 1px 2px rgba(255,255,255,0.9),
-                          -1px -1px 2px rgba(255,255,255,0.9);
-              pointer-events:none;
-            ">${nom}</div>`,
-            iconSize: [80, 20],
-            iconAnchor: [40, 10]
+    fetch('assets/geojson/SEN.geo.json')
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: (feature: any) => ({
+            color: '#1b5e20',
+            weight: 1.5,
+            fillColor: this.getCouleurRegion(feature?.properties?.name || ''),
+            fillOpacity: 0.65
           }),
-          interactive: false
-        }).addTo(this.map);
-      }
-    }).addTo(this.map);
+          onEachFeature: (feature: any, layer: any) => {
+            const nom = feature?.properties?.name || '';
+            const prod = this.statsParRegion()[nom] || 0;
+            const prev = this.prevision()?.productionParRegion?.[nom] || 0;
+            layer.bindPopup(
+              `<b style="color:#0a3d0a;font-size:13px">📍 ${nom}</b><br>` +
+              (prod > 0
+                ? `<span style="font-size:11px">🌾 Récolte réelle : <b>${(prod/1000).toFixed(1)} t</b></span>`
+                : prev > 0
+                  ? `<span style="font-size:11px">Prévision: <b>${prev.toFixed(1)} t</b></span>`
+                  : `<span style="font-size:11px;color:#aaa">Pas de données</span>`)
+            );
+            layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.9 }));
+            layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.65 }));
 
-    //this.map.fitBounds([[12.2, -17.7], [16.7, -11.4]], { padding: [30, 60] });
-    this.map.fitBounds([[12.0, -17.8], [16.9, -11.3]], { padding: [40, 40] });
-    setTimeout(() => {
-      this.map.invalidateSize();
-      this.mettreAJourMarqueurs();
-    }, 300);
-  });
-  } */
-initialiserCarteProduction() {
-  if (this.mapProduction) {
-      this.mapProduction.remove();
-      this.mapProduction = null;
-    }
-  if (typeof window === 'undefined') return;
+            const center = (layer as any).getBounds().getCenter();
+            L.marker(center, {
+              icon: L.divIcon({
+                className: '',
+                html: `<div style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#0a3d0a;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),-1px -1px 2px rgba(255,255,255,0.9);pointer-events:none;">${nom}</div>`,
+                iconSize: [80, 20],
+                iconAnchor: [40, 10]
+              }),
+              interactive: false
+            }).addTo(this.mapProduction);
+          }
+        }).addTo(this.mapProduction);
 
-  const el = document.getElementById('map-production');
-  if (!el) return;
-  el.style.height = '420px';
-  if (this.mapProduction) {
-    this.mapProduction.invalidateSize();
-    return;
+        this.mapProduction.fitBounds([[12.2, -17.7], [16.7, -11.3]]);
+        setTimeout(() => { this.mapProduction?.invalidateSize(true); }, 500);
+      })
+      .catch(err => console.error('Erreur GeoJSON:', err));
   }
 
-  this.mapProduction = L.map('map-production', {
-    center: [14.4974, -14.4524],
-    zoom: 7,
-    zoomControl: true,
-    attributionControl: false,
-    minZoom: 6,
-    maxZoom: 10,
-    maxBounds: [[12.0, -17.8], [16.9, -11.2]],
-    maxBoundsViscosity: 1.0
-  });
+  getCouleurRegion(nom: string): string {
+    const val = this.statsParRegion()[nom] || 0;
+    const prev = this.prevision()?.productionParRegion?.[nom] || 0;
+    const max = this.getMaxRegion();
 
-  setTimeout(() => this.mapProduction.invalidateSize(), 100);
+    if (val > 0 && prev > 0) {
+      const diff = val - prev;
+      if (diff >= 1) {
+        const pct = val / max;
+        if (pct >= 0.8) return '#1b5e20';
+        if (pct >= 0.6) return '#2e7d32';
+        if (pct >= 0.4) return '#388e3c';
+        if (pct >= 0.2) return '#43a047';
+        return '#81c784';
+      }
+      if (diff > -1 && diff < 1) return '#26a69a';
+      if (diff <= -1) return '#ff8f00';
+    }
 
-  fetch('assets/geojson/SEN.geo.json')
-    .then(res => res.json())
-    .then(data => {
-      L.geoJSON(data, {
-        style: (feature: any) => ({
-          color: '#1b5e20',
-          weight: 1.5,
-          fillColor: this.getCouleurRegion(feature?.properties?.name || ''),
-          fillOpacity: 0.65
-        }),
-        onEachFeature: (feature: any, layer: any) => {
-          const nom = feature?.properties?.name || '';
-          const prod = this.statsParRegion()[nom] || 0;
-          layer.bindPopup(
-            `<b style="color:#0a3d0a;font-size:13px">${nom}</b><br>` +
-            (prod
-              ? `<span style="font-size:11px">🌾 Production : <b>${(prod/1000).toFixed(1)} t</b></span>`
-              : `<span style="font-size:11px;color:#aaa">Pas de données</span>`)
-          );
-          layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.9 }));
-          layer.on('mouseout',  () => layer.setStyle({ fillOpacity: 0.65 }));
-
-          const center = (layer as any).getBounds().getCenter();
-         /*  // Décalage manuel pour les régions qui se chevauchent
-          let latOffset = 0;
-          let lngOffset = 0;
-          if (nom === 'Fatick')  { latOffset = 0.3; lngOffset = -0.3; }
-          if (nom === 'Kaolack') { latOffset = -0.3; lngOffset = 0.2; }
-          if (nom === 'Thiès')   { latOffset = 0.1; lngOffset = -0.2; }
-          if (nom === 'Dakar')   { latOffset = 0.1; lngOffset = -0.3; } */
-          L.marker(center, {
-            icon: L.divIcon({
-              className: '',
-              html: `<div style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;color:#0a3d0a;text-align:center;white-space:nowrap;text-shadow:1px 1px 2px rgba(255,255,255,0.9),-1px -1px 2px rgba(255,255,255,0.9);pointer-events:none;">${nom}</div>`,
-              iconSize: [80, 20],
-              iconAnchor: [40, 10]
-            }),
-            interactive: false
-          }).addTo(this.mapProduction);
-        }
-      }).addTo(this.mapProduction);
-
-      this.mapProduction.fitBounds([[12.2, -17.7], [16.7, -11.3]]);
-      //setTimeout(() => this.mapProduction.invalidateSize(), 300);
-      setTimeout(() => {
-        this.mapProduction?.invalidateSize(true);
-      }, 500);
-    })
-    .catch(err => console.error('Erreur GeoJSON:', err));
-}
-getCouleurRegion(nom: string): string {
-  const val = this.statsParRegion()[nom] || 0;
-  const prev = this.prevision()?.productionParRegion?.[nom] || 0;
-  const max = this.getMaxRegion();
-
-  // Récolte réelle ET prévision — comparaison
-  if (val > 0 && prev > 0) {
-    const diff = val - prev;
-
-    if (diff >= 1) {
-      // Récolte dépasse la prévision de +1t → vert foncé
+    if (val > 0) {
       const pct = val / max;
       if (pct >= 0.8) return '#1b5e20';
       if (pct >= 0.6) return '#2e7d32';
@@ -340,95 +301,9 @@ getCouleurRegion(nom: string): string {
       return '#81c784';
     }
 
-    if (diff > -1 && diff < 1) {
-      // Récolte ≈ prévision (écart < 1t) → bleu-vert mélange
-      return '#26a69a';
-    }
-
-    if (diff <= -1) {
-      // Récolte en dessous de la prévision → orange
-      return '#ff8f00';
-    }
+    if (prev > 0) return '#fff9c4';
+    return '#e8f5e9';
   }
-
-  // Récolte réelle seulement → vert
-  if (val > 0) {
-    const pct = val / max;
-    if (pct >= 0.8) return '#1b5e20';
-    if (pct >= 0.6) return '#2e7d32';
-    if (pct >= 0.4) return '#388e3c';
-    if (pct >= 0.2) return '#43a047';
-    return '#81c784';
-  }
-
-  // Prévision ML seulement → jaune
-  if (prev > 0) return '#fff9c4';
-
-  // Aucune donnée
-  return '#e8f5e9';
-}
- /* mettreAJourMarqueurs() {
-   if (!this.map) return;
-   if (!this.markersLayer) {
-     this.markersLayer = L.layerGroup().addTo(this.map);
-   }
-   this.markersLayer.clearLayers();
-
-   const stock = this.stockAlert();
-   const stats = this.statsParRegion();
-   const prev = this.prevision();
-
-   const coords: { [key: string]: [number, number] } = {
-     'Kaolack': [14.146, -16.072], 'Thiès': [14.783, -16.916],
-     'Dakar': [14.693, -17.444], 'Saint-Louis': [16.017, -16.489],
-     'Ziguinchor': [12.568, -16.271], 'Diourbel': [14.655, -16.232],
-     'Fatick': [14.339, -16.411], 'Tambacounda': [13.770, -13.667]
-   };
-
-   Object.entries(stats).forEach(([region, val]) => {
-     const quantite = val as number;
-     const coord = coords[region];
-     if (!coord) return;
-     const icon = L.divIcon({
-       className: '',
-       html: `<div style="background:#1b5e20;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
-       iconSize: [14, 14], iconAnchor: [7, 7]
-     });
-     L.marker(coord, { icon })
-       .bindPopup(`<b style="color:#0a3d0a">${region}</b><br><span style="font-size:11px">Production réelle : ${(quantite / 1000).toFixed(1)} t</span>`)
-       //.addTo(this.markersLayer);
-     L.circle(coord, { color: '#1b5e20', fillColor: '#1b5e20', fillOpacity: 0.15, weight: 1.5, radius: 30000 })
-       //.addTo(this.markersLayer);
-   });
-
-   if (prev?.productionParRegion) {
-     Object.entries(prev.productionParRegion).forEach(([region, val]) => {
-       const quantite = val as number;
-       const coord = coords[region];
-       if (!coord || stats[region]) return;
-       const icon = L.divIcon({
-         className: '',
-         html: `<div style="background:#f9a825;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
-         iconSize: [12, 12], iconAnchor: [6, 6]
-       });
-       L.marker(coord, { icon })
-         .bindPopup(`<b style="color:#e65100">${region}</b><br><span style="font-size:11px">Prévision ML : ${quantite.toFixed(1)} t</span>`)
-         //.addTo(this.markersLayer);
-     });
-   }
-
-   if (stock && coords['Dakar']) {
-     const icon = L.divIcon({
-       className: '',
-       html: `<div style="background:#1565c0;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
-       iconSize: [12, 12], iconAnchor: [6, 6]
-     });
-     const c = this.collectes()[0];
-     L.marker(coords['Dakar'], { icon })
-       .bindPopup(`<b style="color:#1565c0">Marché Sandaga — Dakar</b><br><span style="font-size:11px">Stock : ${stock.stockTotalTonnes.toLocaleString()} t<br>Prix : ${c?.prixUnitaire || '—'} F/kg</span>`)
-       //.addTo(this.markersLayer);
-   }
- } */
 
   // ── KPI ──────────────────────────────────────────
   getStockTotal(): string { const s = this.stockAlert(); return s ? s.stockTotalTonnes.toLocaleString() + ' t' : '—'; }
@@ -470,10 +345,6 @@ getCouleurRegion(nom: string): string {
       }
     }
     return notifs;
-  }
-
-  getNbNotifications(): number {
-    return this.getNotifications().filter(n => n.type === 'danger' || n.type === 'warning').length;
   }
 
   // ── PRÉVISIONS ────────────────────────────────────
@@ -539,13 +410,11 @@ getCouleurRegion(nom: string): string {
       });
   }
 
-  resetFormMarche() {
-    this.nouveauMarche = { nomMarche: '', lieuMarche: '', typeMarche: '', capaciteStockage: 0 };
-  }
+  resetFormMarche() { this.nouveauMarche = { nomMarche: '', lieu: '', type: '' }; }
 
   // ── ENQUÊTEURS CRUD ───────────────────────────────
   ajouterEnqueteur() {
-    const payload = { ...this.nouvelEnqueteur, organisation: this.nouvelEnqueteur.organisation, zoneAffectation: this.nouvelEnqueteur.zoneAffectation };
+    const payload = { ...this.nouvelEnqueteur };
     this.http.post<Enqueteur>(`${this.apiUrl}/api/users/enqueteurs`, payload, { headers: this.getHeaders() })
       .subscribe({
         next: () => { this.showMessage('Enquêteur ajouté !', 'success'); this.showFormEnqueteur = false; this.resetFormEnqueteur(); this.chargerDonnees(); },
@@ -581,70 +450,20 @@ getCouleurRegion(nom: string): string {
     this.nouvelEnqueteur = { nom: '', prenom: '', email: '', telephone: '', organisation: '', zoneAffectation: '', adresse: '' };
   }
 
-  // ── NAVIGATION ────────────────────────────────────
-  /* changerOnglet(onglet: string) {
+  changerOnglet(onglet: string) {
+    if (this.ongletActif === 'production' && this.mapProduction) {
+      this.mapProduction.remove();
+      this.mapProduction = null;
+    }
     this.ongletActif = onglet;
-    if (onglet === 'accueil') setTimeout(() => this.initialiserCarte(), 300);
-  } */
-/* changerOnglet(onglet: string) {
-  this.ongletActif = onglet;
-  if (onglet === 'accueil') {
-    setTimeout(() => {
-      if (this.map) {
-        this.map.invalidateSize();
-      } else {
-        this.initialiserCarte();
-      }
-    }, 300);
+    if (onglet === 'production') {
+      setTimeout(() => { this.initialiserCarteProduction(); }, 300);
+    }
+    if (onglet === 'alertes') {
+      this.marquerToutesLues();
+      setTimeout(() => this.chargerNbAlertes(), 500);
+    }
   }
-} */
-/* changerOnglet(onglet: string) {
-  this.ongletActif = onglet;
-  if (onglet === 'production') {
-    setTimeout(() => {
-      if (this.mapProduction) {
-        this.mapProduction.invalidateSize();
-      } else {
-        this.initialiserCarteProduction();
-      }
-    }, 400);
-  }
-
-
-} */
-/* changerOnglet(onglet: string) {
-  this.ongletActif = onglet;
-
-  if (onglet === 'production') {
-    setTimeout(() => {
-      if (!this.mapProduction) {
-        this.initialiserCarteProduction();
-      }
-
-      setTimeout(() => {
-        this.mapProduction?.invalidateSize(true);
-      }, 500);
-
-    }, 100);
-  }
-} */
-changerOnglet(onglet: string) {
-
-  // Détruire la carte lorsqu'on quitte Production
-  if (this.ongletActif === 'production' && this.mapProduction) {
-    this.mapProduction.remove();
-    this.mapProduction = null;
-  }
-
-  this.ongletActif = onglet;
-
-  // Recréer la carte lorsqu'on revient sur Production
-  if (onglet === 'production') {
-    setTimeout(() => {
-      this.initialiserCarteProduction();
-    }, 300);
-  }
-}
 
   showMessage(msg: string, type: string) {
     this.message = msg; this.messageType = type;
@@ -653,6 +472,124 @@ changerOnglet(onglet: string) {
 
   getTotalProduction(): number {
     return this.recoltes().reduce((s, r) => s + r.quantiteRecolte, 0);
+  }
+
+  chargerDonneesGraphique() {
+    this.http.get<any[]>(
+      `${this.apiUrl}/api/marche/collectes/stats/mensuelles?produit=oignon`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: data => {
+        const nomsMois = ['', 'Janv', 'Févr', 'Mars', 'Avr', 'Mai',
+                          'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+        const resultats = Array.from({ length: 12 }, (_, i) => ({
+          mois: nomsMois[i + 1], prixMoyen: 0, stockTotal: 0
+        }));
+        data.forEach(d => {
+          resultats[d.moisNum - 1] = {
+            mois: nomsMois[d.moisNum],
+            prixMoyen: d.prixMoyen || 0,
+            stockTotal: d.stockTotal || 0
+          };
+        });
+
+        const labels = resultats.map(d => d.mois);
+        const prix = resultats.map(d => d.prixMoyen);
+        const stock = resultats.map(d => d.stockTotal);
+
+        this.chartPrixOptions = {
+          series: [{ name: 'Prix moyen (F/kg)', data: prix }],
+          chart: { type: 'line', height: 220, toolbar: { show: false }, zoom: { enabled: false } },
+          stroke: { curve: 'smooth', width: 1 },
+          colors: ['#e65100'],
+          dataLabels: { enabled: false },
+          markers: { size: 0 },
+          xaxis: { categories: labels, labels: { style: { fontSize: '11px' } } },
+          yaxis: { labels: { style: { fontSize: '11px' } } },
+          grid: { borderColor: '#f0f0f0' },
+          tooltip: { y: { formatter: (val: number) => val ? val + ' F/kg' : '' } }
+        };
+
+        this.chartStockOptions = {
+          series: [{ name: 'Stock (t)', data: stock }],
+          chart: { type: 'line', height: 220, toolbar: { show: false }, zoom: { enabled: false } },
+          stroke: { curve: 'smooth', width: 1 },
+          colors: ['#0a3d0a'],
+          dataLabels: { enabled: false },
+          markers: { size: 0 },
+          xaxis: { categories: labels, labels: { style: { fontSize: '11px' } } },
+          yaxis: { labels: { style: { fontSize: '11px' } } },
+          grid: { borderColor: '#f0f0f0' },
+          tooltip: { y: { formatter: (val: number) => val ? val + ' t' : '' } }
+        };
+      },
+      error: () => {}
+    });
+  }
+
+  getMarchesAvecStock(): number {
+    return this.collectes().filter(c => c.quantiteDisponible > 0).length;
+  }
+
+  chargerAlertes() {
+    this.http.get<AlerteDecideur[]>(
+      `${this.apiUrl}/api/marche/alertes/historique`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: d => this.alertes.set(d),
+      error: () => {}
+    });
+  }
+
+  chargerNbAlertes() {
+    this.http.get<number>(
+      `${this.apiUrl}/api/marche/alertes/count`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: d => this.nbAlertesNonLues.set(d),
+      error: err => console.log('erreur count:', err)
+    });
+  }
+
+  getNbNotifications(): number { return this.nbAlertesNonLues(); }
+
+  marquerToutesLues() {
+    this.http.put(
+      `${this.apiUrl}/api/marche/alertes/lire-toutes`,
+      {},
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.nbAlertesNonLues.set(0);
+        this.chargerAlertes();
+        this.chargerNbAlertes();
+      },
+      error: () => {}
+    });
+  }
+
+  getTypeAlerte(alerte: AlerteDecideur): string {
+    switch (alerte.niveau) {
+      case 'EXCEDENT':
+      case 'SURPLUS':
+      case 'CONFORME': return 'success';
+      case 'INFO':     return 'info';
+      case 'VIGILANCE':
+      case 'DEFICIT':  return 'warning';
+      default:         return 'danger';
+    }
+  }
+
+  getIconeAlerte(alerte: AlerteDecideur): string {
+    switch (alerte.niveau) {
+      case 'EXCEDENT':
+      case 'SURPLUS':   return 'fa-arrow-up';
+      case 'CONFORME':  return 'fa-check-circle';
+      case 'INFO':      return 'fa-seedling';
+      case 'VIGILANCE': return 'fa-exclamation-triangle';
+      case 'DEFICIT':   return 'fa-exclamation-circle';
+      default:          return 'fa-bell';
+    }
   }
 
   logout() { this.authService.logout(); }

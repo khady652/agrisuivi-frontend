@@ -1,1 +1,528 @@
-<p>dashboard-chef-cooperatif works!</p>
+<div class="chef-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="chef-sidebar">
+    <div class="chef-sidebar-logo">
+      <div class="chef-logo-box">🌱</div>
+      <div>
+        <span class="chef-logo-name">AgriSuivi</span>
+        <span class="chef-logo-sub">Chef Coopératif</span>
+      </div>
+    </div>
+
+    <div class="chef-nav-label">Navigation</div>
+    <div class="chef-nav-item" [class.active]="ongletActif==='dashboard'" (click)="changerOnglet('dashboard')">
+      <i class="fas fa-home"></i><span>Dashboard</span>
+    </div>
+    <div class="chef-nav-item" [class.active]="ongletActif==='agriculteurs'" (click)="changerOnglet('agriculteurs')">
+      <i class="fas fa-users"></i><span>Agriculteurs</span>
+      <span class="chef-nav-badge">{{ agriculteurs().length }}</span>
+    </div>
+    <div class="chef-nav-item" [class.active]="ongletActif==='recoltes'" (click)="changerOnglet('recoltes')">
+      <i class="fas fa-seedling"></i><span>Récoltes</span>
+    </div>
+    <div class="chef-nav-item" [class.active]="ongletActif==='analyse'" (click)="changerOnglet('analyse')">
+      <i class="fas fa-chart-bar"></i><span>Analyse</span>
+    </div>
+    <div class="chef-nav-item" [class.active]="ongletActif==='previsions'" (click)="changerOnglet('previsions')">
+      <i class="fas fa-robot"></i><span>Rendement estimé</span>
+    </div>
+
+    <div class="chef-sidebar-bottom">
+      @if (profil()) {
+      <div class="chef-profil-card">
+        <div class="chef-profil-avatar">{{ getInitiales(profil()!.nom, profil()!.prenom) }}</div>
+        <div class="chef-profil-info">
+          <div class="chef-profil-nom">{{ profil()!.prenom }} {{ profil()!.nom }}</div>
+          <div class="chef-profil-role">{{ profil()!.nomCooperative }}</div>
+        </div>
+        <button class="chef-logout-btn" (click)="deconnecter()" title="Déconnexion">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+      }
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="chef-main">
+
+    <!-- TOPBAR -->
+    <div class="chef-topbar">
+      <div>
+        <div class="chef-topbar-title">
+          {{ ongletActif === 'dashboard' ? 'Dashboard coopérative' :
+          ongletActif === 'agriculteurs' ? 'Mes agriculteurs' :
+          ongletActif === 'recoltes' ? 'Récoltes' :
+          ongletActif === 'analyse' ? 'Analyse production' :
+          'Rendement estimé' }}
+        </div>
+        <div class="chef-topbar-date">{{ profil()?.nomCooperative || 'Coopérative' }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        @if (profil()) {
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:500;color:white">{{ profil()!.prenom }} {{ profil()!.nom }}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6)">Chef Coopératif</div>
+          </div>
+          <div class="chef-avatar-top" (click)="toggleProfilPopup()" style="cursor:pointer">
+            {{ getInitiales(profil()!.nom, profil()!.prenom) }}
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- ══ DASHBOARD ══ -->
+    @if (ongletActif === 'dashboard') {
+    <div class="chef-scrollable">
+
+      <div class="chef-kpi-grid">
+        <div class="chef-kpi chef-kpi-green">
+          <div class="chef-kpi-icon"><i class="fas fa-users"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Agriculteurs</div>
+            <div class="chef-kpi-val">{{ agriculteurs().length }}</div>
+            <div class="chef-kpi-sub">Ma coopérative</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-blue">
+          <div class="chef-kpi-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Production</div>
+            <div class="chef-kpi-val">{{ (getTotalRecolteKg() / 1000) | number:'1.1-1' }} t</div>
+            <div class="chef-kpi-sub">Total récolté</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-orange">
+          <div class="chef-kpi-icon"><i class="fas fa-bullseye"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Taux réalisation</div>
+            <div class="chef-kpi-val">{{ getTauxRealisation() }}</div>
+            <div class="chef-kpi-sub">vs prévision ML</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-purple">
+          <div class="chef-kpi-icon"><i class="fas fa-leaf"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Cultures actives</div>
+            <div class="chef-kpi-val">{{ getTotalAvancement('enCours') }}</div>
+            <div class="chef-kpi-sub">En cours</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chef-table-wrap" style="margin-top:16px">
+        <div class="chef-table-header">
+          <i class="fas fa-chart-bar" style="color:#1b5e20"></i> Avancement des cultures
+        </div>
+        <div style="padding:16px">
+          <div class="chef-prog-row">
+            <div class="chef-prog-label">
+              <span>Récoltées</span>
+              <span style="color:#2d9e2d">{{ getTotalAvancement('recoltee') }} / {{ getTotalCultures() }}</span>
+            </div>
+            <div class="chef-prog-bar">
+              <div class="chef-prog-fill" [style.width.%]="getPourcentage('recoltee')" style="background:#2d9e2d"></div>
+            </div>
+          </div>
+          <div class="chef-prog-row">
+            <div class="chef-prog-label">
+              <span>En cours</span>
+              <span style="color:#1565c0">{{ getTotalAvancement('enCours') }} / {{ getTotalCultures() }}</span>
+            </div>
+            <div class="chef-prog-bar">
+              <div class="chef-prog-fill" [style.width.%]="getPourcentage('enCours')" style="background:#1565c0"></div>
+            </div>
+          </div>
+          <!--<div class="chef-prog-row">
+            <div class="chef-prog-label">
+              <span>Planifiées</span>
+              <span style="color:#7b1fa2">{{ getTotalAvancement('planifiee') }} / {{ getTotalCultures() }}</span>
+            </div>
+            <div class="chef-prog-bar">
+              <div class="chef-prog-fill" [style.width.%]="getPourcentage('planifiee')" style="background:#7b1fa2"></div>
+            </div>
+          </div>-->
+          <div class="chef-prog-row">
+            <div class="chef-prog-label">
+              <span>En retard</span>
+              <span style="color:#f57f17">{{ getTotalAvancement('enRetard') }} / {{ getTotalCultures() }}</span>
+            </div>
+            <div class="chef-prog-bar">
+              <div class="chef-prog-fill" [style.width.%]="getPourcentage('enRetard')" style="background:#f57f17"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    }
+
+    <!-- ══ AGRICULTEURS ══ -->
+    @if (ongletActif === 'agriculteurs') {
+    <div class="chef-scrollable">
+      <div class="chef-page-header">
+        <div>
+          <h1><i class="fas fa-users"></i> Mes agriculteurs</h1>
+          <p>{{ agriculteurs().length }} agriculteur(s) dans ma coopérative</p>
+        </div>
+        <button class="chef-btn-primary" (click)="showFormAgriculteur = !showFormAgriculteur; showFormModifierAgriculteur = false">
+          <i class="fas fa-plus"></i> Ajouter un agriculteur
+        </button>
+      </div>
+
+      @if (showFormAgriculteur) {
+      <div class="chef-form-card">
+        <div class="chef-form-title">👨‍🌾 Nouvel agriculteur</div>
+        <div class="chef-form-grid">
+          <div class="chef-form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="nouveauAgriculteur.nom" class="chef-form-input" placeholder="Nom"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="nouveauAgriculteur.prenom" class="chef-form-input" placeholder="Prénom"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="nouveauAgriculteur.email" class="chef-form-input" placeholder="email@exemple.com"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Téléphone *</label>
+            <input type="text" [(ngModel)]="nouveauAgriculteur.telephone" class="chef-form-input" placeholder="77XXXXXXX"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Adresse</label>
+            <input type="text" [(ngModel)]="nouveauAgriculteur.adresse" class="chef-form-input" placeholder="Village, commune"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Années d'expérience</label>
+            <input type="number" [(ngModel)]="nouveauAgriculteur.anneeExperience" class="chef-form-input"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Niveau d'instruction</label>
+            <select [(ngModel)]="nouveauAgriculteur.niveauInstruction" class="chef-form-input">
+              <option value="">Sélectionner</option>
+              <option>Aucun</option>
+              <option>Primaire</option>
+              <option>Secondaire</option>
+              <option>Supérieur</option>
+              <option>Darra</option>
+            </select>
+          </div>
+        </div>
+        <div class="chef-form-actions">
+          <button class="chef-btn-cancel" (click)="showFormAgriculteur = false">Annuler</button>
+          <button class="chef-btn-primary" (click)="ajouterAgriculteur()"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
+      </div>
+      }
+
+      @if (showFormModifierAgriculteur && agriculteurAModifier) {
+      <div class="chef-form-card" style="border-color:#1b5e20">
+        <div class="chef-form-title">✏️ Modifier l'agriculteur</div>
+        <div class="chef-form-grid">
+          <div class="chef-form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="agriculteurAModifier.nom" class="chef-form-input"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="agriculteurAModifier.prenom" class="chef-form-input"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Téléphone</label>
+            <input type="text" [(ngModel)]="agriculteurAModifier.telephone" class="chef-form-input"/>
+          </div>
+          <div class="chef-form-group">
+            <label>Adresse</label>
+            <input type="text" [(ngModel)]="agriculteurAModifier.adresse" class="chef-form-input"/>
+          </div>
+        </div>
+        <div class="chef-form-actions">
+          <button class="chef-btn-cancel" (click)="showFormModifierAgriculteur = false; agriculteurAModifier = null">Annuler</button>
+          <button class="chef-btn-primary" (click)="modifierAgriculteur()"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
+      </div>
+      }
+
+      <div class="chef-table-wrap">
+        <table class="chef-data-table">
+          <thead>
+          <tr><th>Agriculteur</th><th>Téléphone</th><th>Adresse</th><th>Expérience</th><th>Statut</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+          @for (a of agriculteurs(); track a.idUtilisateur) {
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="chef-avatar-sm">{{ getInitiales(a.nom, a.prenom) }}</div>
+                <div>
+                  <div style="font-weight:500">{{ a.prenom }} {{ a.nom }}</div>
+                  <div style="font-size:11px;color:#888">{{ a.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ a.telephone }}</td>
+            <td>{{ a.adresse || '—' }}</td>
+            <td>{{ a.anneeExperience }} ans</td>
+            <td>
+              <span [class]="a.actif ? 'chef-badge-actif' : 'chef-badge-inactif'">
+                {{ a.actif ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="chef-action-edit" (click)="ouvrirModifierAgriculteur(a)"><i class="fas fa-pen"></i></button>
+                <button class="chef-action-del" (click)="supprimerAgriculteur(a.idUtilisateur)"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- ══ RÉCOLTES ══ -->
+    @if (ongletActif === 'recoltes') {
+    <div class="chef-scrollable">
+      <div class="chef-page-header">
+        <div>
+          <h1><i class="fas fa-seedling"></i> Récoltes</h1>
+          <p>{{ recoltes().length }} récolte(s) enregistrée(s)</p>
+        </div>
+      </div>
+      <div class="chef-table-wrap">
+        <table class="chef-data-table">
+          <thead>
+          <tr><th>Date</th><th>Culture</th><th>Variété</th><th>Parcelle</th><th>Quantité réelle</th><th>Prévu</th><th>Écart</th></tr>
+          </thead>
+          <tbody>
+          @for (r of recoltes(); track r.idRecolte) {
+          <tr>
+            <td style="font-size:12px;color:#888">{{ r.dateRecolte }}</td>
+            <td><span class="chef-pill">🌱 {{ r.typeCulture }}</span></td>
+            <td>{{ r.varieteCulture }}</td>
+            <td>{{ r.nomParcelle }}</td>
+            <td><strong style="color:#1b5e20">{{ (r.quantiteRecolte / 1000) | number:'1.1-1' }} t</strong></td>
+            <td>{{ r.quantiteRecoltePrevu ? ((r.quantiteRecoltePrevu / 1000) | number:'1.1-1') + ' t' : '—' }}</td>
+            <td>
+              @if (r.quantiteRecoltePrevu) {
+              <span [style.color]="r.quantiteRecolte >= r.quantiteRecoltePrevu ? '#2d9e2d' : '#f57f17'">
+                {{ r.quantiteRecolte >= r.quantiteRecoltePrevu ? '+' : '' }}{{ ((r.quantiteRecolte - r.quantiteRecoltePrevu) / 1000) | number:'1.1-1' }} t
+              </span>
+              }
+            </td>
+          </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+
+    <!-- ══ ANALYSE ══ -->
+    @if (ongletActif === 'analyse') {
+    <div class="chef-scrollable">
+      <div class="chef-page-header">
+        <div>
+          <h1><i class="fas fa-chart-bar"></i> Analyse production</h1>
+          <p>Campagne {{ production()?.nombreRecoltes || 0 }} récoltes</p>
+        </div>
+      </div>
+
+      @if (production()) {
+      <div class="chef-kpi-grid" style="margin-bottom:16px">
+        <div class="chef-kpi chef-kpi-green">
+          <div class="chef-kpi-icon"><i class="fas fa-weight"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Total produit</div>
+            <div class="chef-kpi-val">{{ (production()!.totalProduitsKg / 1000) | number:'1.1-1' }} t</div>
+            <div class="chef-kpi-sub">Cette campagne</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-blue">
+          <div class="chef-kpi-icon"><i class="fas fa-calendar-check"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Total prévu</div>
+            <div class="chef-kpi-val">{{ (production()!.totalPrevuKg / 1000) | number:'1.1-1' }} t</div>
+            <div class="chef-kpi-sub">Prévision ML</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-orange">
+          <div class="chef-kpi-icon"><i class="fas fa-bullseye"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Taux réalisation</div>
+            <div class="chef-kpi-val">{{ production()!.tauxRealisation }}</div>
+            <div class="chef-kpi-sub">Prévu vs réel</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-purple">
+          <div class="chef-kpi-icon"><i class="fas fa-list"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Nb récoltes</div>
+            <div class="chef-kpi-val">{{ production()!.nombreRecoltes }}</div>
+            <div class="chef-kpi-sub">Total</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="chef-table-wrap">
+          <div class="chef-table-header">Par variété</div>
+          <table class="chef-data-table">
+            <thead><tr><th>Variété</th><th>Quantité</th></tr></thead>
+            <tbody>
+            @for (item of (production()!.productionParVariete | keyvalue); track item.key) {
+            <tr>
+              <td>{{ item.key }}</td>
+              <td><strong style="color:#1b5e20">{{ (item.value / 1000) | number:'1.1-1' }} t</strong></td>
+            </tr>
+            }
+            </tbody>
+          </table>
+        </div>
+        <div class="chef-table-wrap">
+          <div class="chef-table-header">Par saison</div>
+          <table class="chef-data-table">
+            <thead><tr><th>Saison</th><th>Quantité</th></tr></thead>
+            <tbody>
+            @for (item of (production()!.productionParSaison | keyvalue); track item.key) {
+            <tr>
+              <td>{{ item.key }}</td>
+              <td><strong style="color:#1b5e20">{{ (item.value / 1000) | number:'1.1-1' }} t</strong></td>
+            </tr>
+            }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ══ PRÉVISIONS ══ -->
+    @if (ongletActif === 'previsions') {
+    <div class="chef-scrollable">
+      <div class="chef-page-header">
+        <div>
+          <h1><i class="fas fa-robot"></i> Rendement estimé</h1>
+          <p>Prévisions ML — campagne oignon</p>
+        </div>
+      </div>
+
+      @if (prevision()) {
+      <div class="chef-kpi-grid" style="margin-bottom:16px">
+        <div class="chef-kpi chef-kpi-green">
+          <div class="chef-kpi-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Production estimée</div>
+            <div class="chef-kpi-val">{{ prevision()!.productionPrevueTonnes | number:'1.1-1' }} t</div>
+            <div class="chef-kpi-sub">Ma coopérative</div>
+          </div>
+        </div>
+        <div class="chef-kpi chef-kpi-blue">
+          <div class="chef-kpi-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="chef-kpi-info">
+            <div class="chef-kpi-lbl">Période</div>
+            <div class="chef-kpi-val" style="font-size:13px">{{ prevision()!.periodeRecolte }}</div>
+            <div class="chef-kpi-sub">Début — fin</div>
+          </div>
+        </div>
+      </div>
+      <div class="chef-table-wrap">
+        <div class="chef-table-header">Prévision par mois</div>
+        <table class="chef-data-table">
+          <thead><tr><th>Mois</th><th>Production estimée</th></tr></thead>
+          <tbody>
+          @for (item of (prevision()!.productionParMois | keyvalue); track item.key) {
+          <tr>
+            <td>{{ item.key }}</td>
+            <td><strong style="color:#1b5e20">{{ item.value | number:'1.1-1' }} t</strong></td>
+          </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+    }
+
+  </main>
+
+  <!-- ══ MODAL PROFIL ══ -->
+  @if (showProfilPopup && profil()) {
+  <div class="modal-overlay" (click)="toggleProfilPopup()">
+    <div class="modal-profil" (click)="$event.stopPropagation()">
+      <div class="modal-profil-header">
+        <div class="modal-profil-avatar">
+          {{ getInitiales(profil()!.nom, profil()!.prenom) }}
+        </div>
+        <div>
+          <div class="modal-profil-nom">{{ profil()!.prenom }} {{ profil()!.nom }}</div>
+          <div class="modal-profil-role">Chef Coopératif — {{ profil()!.nomCooperative }}</div>
+        </div>
+        <button class="modal-profil-close" (click)="toggleProfilPopup()">✕</button>
+      </div>
+
+      @if (!showFormProfil) {
+      <div style="padding:20px">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#555">
+            <i class="fas fa-user" style="color:#1b5e20;width:16px"></i>
+            {{ profil()!.prenom }} {{ profil()!.nom }}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#555">
+            <i class="fas fa-phone" style="color:#1b5e20;width:16px"></i>
+            {{ profil()!.telephone || '—' }}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#555">
+            <i class="fas fa-envelope" style="color:#1b5e20;width:16px"></i>
+            {{ profil()!.email || '—' }}
+          </div>
+        </div>
+        <button class="profil-btn-edit" (click)="ouvrirModifierProfil()">
+          <i class="fas fa-pen"></i> Modifier mon profil
+        </button>
+      </div>
+      }
+
+      @if (showFormProfil && profilAModifier) {
+      <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div class="profil-form-group">
+          <label>Prénom</label>
+          <input type="text" [(ngModel)]="profilAModifier.prenom" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Nom</label>
+          <input type="text" [(ngModel)]="profilAModifier.nom" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Téléphone</label>
+          <input type="text" [(ngModel)]="profilAModifier.telephone" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="profilAModifier.email" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-group">
+          <label>Adresse</label>
+          <input type="text" [(ngModel)]="profilAModifier.adresse" class="profil-form-input-modal"/>
+        </div>
+        <div class="profil-form-actions">
+          <button class="profil-btn-cancel" (click)="showFormProfil = false">Annuler</button>
+          <button class="profil-btn-save" (click)="modifierProfil()">
+            <i class="fas fa-save"></i> Enregistrer
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+</div>

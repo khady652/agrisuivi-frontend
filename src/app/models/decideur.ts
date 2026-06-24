@@ -1,10 +1,11 @@
 export interface ProfilDecideur {
   idUtilisateur: number;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone: string;
-  actif: boolean;
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone: string;
+    adresse?: string;  // ← ajoute
+    actif: boolean;
 }
 
 export interface RecoltDecideur {
@@ -57,10 +58,9 @@ export interface Notification {
 }
 export interface Marche {
   idMarche: number;
-  nomMarche: string;
-  lieuMarche: string;
-  typeMarche: string;
-  capaciteStockage: number;
+    nomMarche: string;
+    type: string;
+    lieu: string;
 }
 
 export interface Enqueteur {
@@ -72,4 +72,16 @@ export interface Enqueteur {
   organisation: string;
   zoneAffectation: string;
   actif: boolean;
+}
+
+export interface AlerteDecideur {
+  id: number;
+  produit: string;
+  phase: number;
+  niveau: string;
+  titre: string;
+  message: string;
+  recommandation: string;
+  valeurPrincipale: number;
+  dateCreation: string;
 }
