@@ -38,23 +38,16 @@
   <!-- CONTENU -->
   <main class="main-content">
 
-    <!-- HEADER TOP -->
     <div class="top-header">
-      <div class="header-left">
-        <h2>{{ getPageTitle() }}</h2>
-      </div>
+      <div class="header-left"><h2>{{ getPageTitle() }}</h2></div>
       <div class="header-right">
-        <button class="header-logout-btn" (click)="logout()">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
+        <button class="header-logout-btn" (click)="logout()"><i class="fas fa-sign-out-alt"></i></button>
         <div class="profil-btn">
           <div class="profil-info">
             <span class="profil-nom">{{ prenomAdmin }} {{ nomAdmin }}</span>
             <span class="profil-role">Administrateur</span>
           </div>
-          <div class="profil-photo">
-            {{ prenomAdmin ? prenomAdmin.charAt(0) : 'A' }}{{ nomAdmin ? nomAdmin.charAt(0) : '' }}
-          </div>
+          <div class="profil-photo">{{ prenomAdmin ? prenomAdmin.charAt(0) : 'A' }}{{ nomAdmin ? nomAdmin.charAt(0) : '' }}</div>
         </div>
       </div>
     </div>
@@ -70,31 +63,11 @@
       <p>{{ today }} — Voici un aperçu de la plateforme</p>
     </div>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Utilisateurs</div>
-        <div class="stat-num">{{ utilisateurs().length }}</div>
-        <div class="stat-sub">✅ {{ utilisateursActifs() }} actifs</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Régions</div>
-        <div class="stat-num">{{ regions().length }}</div>
-        <div class="stat-sub">🌍 Sénégal</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Départements</div>
-        <div class="stat-num">{{ departements().length }}</div>
-        <div class="stat-sub">🏘️ Enregistrés</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Services</div>
-        <div class="stat-num">{{ totalServices() }}</div>
-        <div class="stat-sub">🏢 Actifs</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Coopératives</div>
-        <div class="stat-num">{{ cooperatives().length }}</div>
-        <div class="stat-sub">🤝 Enregistrées</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">Utilisateurs</div><div class="stat-num">{{ utilisateurs().length }}</div><div class="stat-sub">✅ {{ utilisateursActifs() }} actifs</div></div>
+      <div class="stat-card"><div class="stat-label">Régions</div><div class="stat-num">{{ regions().length }}</div><div class="stat-sub">🌍 Sénégal</div></div>
+      <div class="stat-card"><div class="stat-label">Départements</div><div class="stat-num">{{ departements().length }}</div><div class="stat-sub">🏘️ Enregistrés</div></div>
+      <div class="stat-card"><div class="stat-label">Services</div><div class="stat-num">{{ totalServices() }}</div><div class="stat-sub">🏢 Actifs</div></div>
+      <div class="stat-card"><div class="stat-label">Coopératives</div><div class="stat-num">{{ cooperatives().length }}</div><div class="stat-sub">🤝 Enregistrées</div></div>
     </div>
     <div class="table-wrap">
       <div class="table-header">
@@ -102,24 +75,11 @@
         <span class="voir-tout" (click)="changerOnglet('utilisateurs')">Voir tout →</span>
       </div>
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Utilisateur</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead>
         <tbody>
         @for (u of derniersUtilisateurs(); track u.idUtilisateur) {
         <tr>
-          <td>
-            <div class="user-cell">
-              <div class="avatar" [style.background]="getAvatarColor(u.nom)">
-                {{ u.nom?.charAt(0) }}{{ u.prenom?.charAt(0) }}
-              </div>
-              <span class="user-nom">{{ u.nom }} {{ u.prenom }}</span>
-            </div>
-          </td>
+          <td><div class="user-cell"><div class="avatar" [style.background]="getAvatarColor(u.nom)">{{ u.nom?.charAt(0) }}{{ u.prenom?.charAt(0) }}</div><span class="user-nom">{{ u.nom }} {{ u.prenom }}</span></div></td>
           <td><span [class]="'badge ' + getRoleBadge(u.role)">{{ getRoleLabel(u.role) }}</span></td>
           <td><span [class]="u.actif ? 'pill-actif' : 'pill-inactif'">{{ u.actif ? 'Actif' : 'Inactif' }}</span></td>
         </tr>
@@ -138,82 +98,41 @@
     <div class="table-toolbar">
       <div class="search-wrap">
         <i class="fas fa-search search-icon"></i>
-        <input type="text"
-               [value]="searchUser()"
-               (input)="searchUser.set($any($event.target).value)"
-               placeholder="Rechercher un utilisateur..."
-               class="search-input"/>
+        <input type="text" [value]="searchUser()" (input)="searchUser.set($any($event.target).value)" placeholder="Rechercher un utilisateur..." class="search-input"/>
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn-exporter" (click)="exporterUtilisateurs()">
-          <i class="fas fa-download"></i> Exporter
-        </button>
-        <button class="btn-ajouter" (click)="ouvrirModalUser()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <button class="btn-exporter" (click)="exporterUtilisateurs()"><i class="fas fa-download"></i> Exporter</button>
+        <button class="btn-ajouter" (click)="ouvrirModalUser()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Utilisateur</th>
-          <th>Email</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Utilisateur</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody>
         @for (u of utilisateursFiltres(); track u.idUtilisateur) {
         <tr>
           <td>
             <div class="user-cell">
-              <div class="avatar" [style.background]="getAvatarColor(u.nom)">
-                {{ u.nom?.charAt(0) }}{{ u.prenom?.charAt(0) }}
-              </div>
+              <div class="avatar" [style.background]="getAvatarColor(u.nom)">{{ u.nom?.charAt(0) }}{{ u.prenom?.charAt(0) }}</div>
               <div>
                 <div class="user-nom">{{ u.nom }} {{ u.prenom }}</div>
-                <div class="user-role-sub">
-                  <i class="fas fa-calendar-alt" style="font-size:10px"></i>
-                  Créé le {{ u.dateCreation || '—' }}
-                </div>
+                <div class="user-role-sub"><i class="fas fa-calendar-alt" style="font-size:10px"></i> Créé le {{ u.dateCreation || '—' }}</div>
               </div>
             </div>
           </td>
-          <td>
-            <div style="display:flex;align-items:center;gap:6px;color:#666;font-size:13px">
-              <i class="fas fa-envelope" style="font-size:11px;color:#aaa"></i>
-              {{ u.email || '—' }}
-            </div>
-          </td>
+          <td><div style="display:flex;align-items:center;gap:6px;color:#666;font-size:13px"><i class="fas fa-envelope" style="font-size:11px;color:#aaa"></i>{{ u.email || '—' }}</div></td>
           <td><span [class]="'badge ' + getRoleBadge(u.role)">{{ getRoleLabel(u.role) }}</span></td>
           <td><span [class]="u.actif ? 'pill-actif' : 'pill-inactif'">{{ u.actif ? 'Actif' : 'Inactif' }}</span></td>
           <td>
             <div style="display:flex;gap:6px;align-items:center">
-              <button class="action-btn action-voir" title="Voir"
-                      (click)="ouvrirModalVoir(u)">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditUser(u)">
-                <i class="fas fa-pen"></i>
-              </button>
-              @if (!u.actif) {
-              <button class="action-btn action-activer" title="Activer"
-                      (click)="activerCompte(u.idUtilisateur)">
-                <i class="fas fa-check-circle"></i>
-              </button>
+              <button class="action-btn action-voir" title="Voir" (click)="ouvrirModalVoir(u)"><i class="fas fa-eye"></i></button>
+              <button class="action-btn action-edit" title="Modifier" (click)="ouvrirModalEditUser(u)"><i class="fas fa-pen"></i></button>
+              @if (u.actif) {
+              <button class="action-btn action-desactiver" title="Désactiver" (click)="desactiverCompte(u.idUtilisateur)"><i class="fas fa-ban"></i></button>
               } @else {
-              <button class="action-btn action-desactiver" title="Désactiver"
-                      (click)="desactiverCompte(u.idUtilisateur)">
-                <i class="fas fa-ban"></i>
-              </button>
+              <button class="action-btn action-activer" title="Activer" (click)="activerCompte(u.idUtilisateur)"><i class="fas fa-check-circle"></i></button>
               }
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerUtilisateur(u.idUtilisateur, u.role)">
-                <i class="fas fa-trash"></i>
-              </button>
+              <button class="action-btn action-del" title="Supprimer" (click)="supprimerUtilisateur(u.idUtilisateur, u.role)"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>
@@ -223,31 +142,17 @@
     </div>
     }
 
+    <!-- ══ RÉGIONS ══ -->
     @if (ongletActif === 'regions') {
     <div class="page-header">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h1><i class="fas fa-globe-africa"></i> Régions</h1>
-          <p>{{ regions().length }} régions</p>
-        </div>
-        <button class="btn-ajouter" (click)="ouvrirModalRegion()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <div><h1><i class="fas fa-globe-africa"></i> Régions</h1><p>{{ regions().length }} régions</p></div>
+        <button class="btn-ajouter" (click)="ouvrirModalRegion()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Nom Région</th>
-          <th>Population</th>
-          <th>Superficie (km²)</th>
-          <th>Service Régional</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nom Région</th><th>Population</th><th>Superficie (km²)</th><th>Service Régional</th><th>Latitude</th><th>Longitude</th><th>Actions</th></tr></thead>
         <tbody>
         @for (r of regions(); track r.idRegion) {
         <tr>
@@ -257,48 +162,25 @@
           <td>{{ r.nomServiceRegionale || '—' }}</td>
           <td>{{ r.latitude || '—' }}</td>
           <td>{{ r.longitude || '—' }}</td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditRegion(r)">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerRegion(r.idRegion)">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+          <td><div style="display:flex;gap:6px"><button class="action-btn action-edit" (click)="ouvrirModalEditRegion(r)"><i class="fas fa-pen"></i></button><button class="action-btn action-del" (click)="supprimerRegion(r.idRegion)"><i class="fas fa-trash"></i></button></div></td>
         </tr>
         }
         </tbody>
       </table>
     </div>
     }
+
+    <!-- ══ DÉPARTEMENTS ══ -->
     @if (ongletActif === 'departements') {
     <div class="page-header">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h1><i class="fas fa-map"></i> Départements</h1>
-          <p>{{ departements().length }} départements</p>
-        </div>
-        <button class="btn-ajouter" (click)="ouvrirModalDepartement()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <div><h1><i class="fas fa-map"></i> Départements</h1><p>{{ departements().length }} départements</p></div>
+        <button class="btn-ajouter" (click)="ouvrirModalDepartement()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Nom Département</th>
-          <th>Région</th>
-          <th>Population</th>
-          <th>Superficie (km²)</th>
-          <th>Service Dép.</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nom Département</th><th>Région</th><th>Population</th><th>Superficie (km²)</th><th>Service Dép.</th><th>Actions</th></tr></thead>
         <tbody>
         @for (d of departements(); track d.idDepartement) {
         <tr>
@@ -307,18 +189,7 @@
           <td>{{ d.population | number }}</td>
           <td>{{ d.superficie | number }}</td>
           <td>{{ d.nomServiceDepartementale || '—' }}</td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditDepartement(d)">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerDepartement(d.idDepartement)">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+          <td><div style="display:flex;gap:6px"><button class="action-btn action-edit" (click)="ouvrirModalEditDepartement(d)"><i class="fas fa-pen"></i></button><button class="action-btn action-del" (click)="supprimerDepartement(d.idDepartement)"><i class="fas fa-trash"></i></button></div></td>
         </tr>
         }
         </tbody>
@@ -330,27 +201,13 @@
     @if (ongletActif === 'services-reg') {
     <div class="page-header">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h1><i class="fas fa-building"></i> Services Régionaux</h1>
-          <p>{{ servicesRegionaux().length }} services</p>
-        </div>
-        <button class="btn-ajouter" (click)="ouvrirModalServiceReg()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <div><h1><i class="fas fa-building"></i> Services Régionaux</h1><p>{{ servicesRegionaux().length }} services</p></div>
+        <button class="btn-ajouter" (click)="ouvrirModalServiceReg()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Nom Service</th>
-          <th>Région</th>
-          <th>Localité</th>
-          <th>Téléphone</th>
-          <th>Email</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nom Service</th><th>Région</th><th>Localité</th><th>Téléphone</th><th>Email</th><th>Actions</th></tr></thead>
         <tbody>
         @for (s of servicesRegionaux(); track s.idService) {
         <tr>
@@ -359,49 +216,25 @@
           <td>{{ s.localite || '—' }}</td>
           <td>{{ s.telephoneService || '—' }}</td>
           <td>{{ s.emailService || '—' }}</td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditServiceReg(s)">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerServiceReg(s.idService)">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+          <td><div style="display:flex;gap:6px"><button class="action-btn action-edit" (click)="ouvrirModalEditServiceReg(s)"><i class="fas fa-pen"></i></button><button class="action-btn action-del" (click)="supprimerServiceReg(s.idService)"><i class="fas fa-trash"></i></button></div></td>
         </tr>
         }
         </tbody>
       </table>
     </div>
     }
+
     <!-- ══ SERVICES DÉPARTEMENTAUX ══ -->
     @if (ongletActif === 'services-dep') {
     <div class="page-header">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h1><i class="fas fa-city"></i> Services Départementaux</h1>
-          <p>{{ servicesDepartementaux().length }} services</p>
-        </div>
-        <button class="btn-ajouter" (click)="ouvrirModalServiceDep()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <div><h1><i class="fas fa-city"></i> Services Départementaux</h1><p>{{ servicesDepartementaux().length }} services</p></div>
+        <button class="btn-ajouter" (click)="ouvrirModalServiceDep()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Nom Service</th>
-          <th>Département</th>
-          <th>Localité</th>
-          <th>Téléphone</th>
-          <th>Directeur SDDR</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nom Service</th><th>Département</th><th>Localité</th><th>Téléphone</th><th>Directeur SDDR</th><th>Actions</th></tr></thead>
         <tbody>
         @for (s of servicesDepartementaux(); track s.idService) {
         <tr>
@@ -410,18 +243,7 @@
           <td>{{ s.localite || '—' }}</td>
           <td>{{ s.telephoneService || '—' }}</td>
           <td>{{ s.nomDirecteur ? s.nomDirecteur + ' ' + s.prenomDirecteur : '—' }}</td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditServiceDep(s)">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerServiceDep(s.idService)">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+          <td><div style="display:flex;gap:6px"><button class="action-btn action-edit" (click)="ouvrirModalEditServiceDep(s)"><i class="fas fa-pen"></i></button><button class="action-btn action-del" (click)="supprimerServiceDep(s.idService)"><i class="fas fa-trash"></i></button></div></td>
         </tr>
         }
         </tbody>
@@ -433,26 +255,13 @@
     @if (ongletActif === 'cooperatives') {
     <div class="page-header">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <h1><i class="fas fa-handshake"></i> Coopératives</h1>
-          <p>{{ cooperatives().length }} coopératives enregistrées</p>
-        </div>
-        <button class="btn-ajouter" (click)="ouvrirModalCoop()">
-          <i class="fas fa-plus"></i> Ajouter
-        </button>
+        <div><h1><i class="fas fa-handshake"></i> Coopératives</h1><p>{{ cooperatives().length }} coopératives enregistrées</p></div>
+        <button class="btn-ajouter" (click)="ouvrirModalCoop()"><i class="fas fa-plus"></i> Ajouter</button>
       </div>
     </div>
     <div class="table-wrap">
       <table class="data-table">
-        <thead>
-        <tr>
-          <th>Nom</th>
-          <th>Adresse</th>
-          <th>Membres</th>
-          <th>Date création</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Nom</th><th>Adresse</th><th>Membres</th><th>Date création</th><th>Actions</th></tr></thead>
         <tbody>
         @for (c of cooperatives(); track c.idCooperative) {
         <tr>
@@ -460,18 +269,7 @@
           <td>{{ c.adresse || '—' }}</td>
           <td>{{ c.nombreMembres || '—' }}</td>
           <td>{{ c.dateCreation || '—' }}</td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <button class="action-btn action-edit" title="Modifier"
-                      (click)="ouvrirModalEditCoop(c)">
-                <i class="fas fa-pen"></i>
-              </button>
-              <button class="action-btn action-del" title="Supprimer"
-                      (click)="supprimerCooperative(c.idCooperative)">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+          <td><div style="display:flex;gap:6px"><button class="action-btn action-edit" (click)="ouvrirModalEditCoop(c)"><i class="fas fa-pen"></i></button><button class="action-btn action-del" (click)="supprimerCooperative(c.idCooperative)"><i class="fas fa-trash"></i></button></div></td>
         </tr>
         }
         </tbody>
@@ -485,16 +283,13 @@
       <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span><i class="fas fa-user-plus"></i> Créer un utilisateur</span>
-          <button class="modal-close" (click)="fermerModalUser()">
-            <i class="fas fa-times"></i>
-          </button>
+          <button class="modal-close" (click)="fermerModalUser()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-row">
             <div class="form-col">
               <label>Type d'utilisateur *</label>
               <select [(ngModel)]="typeUtilisateur" class="modal-input">
-                <option value="ENQUETEUR_MARCHE">Enquêteur Marché</option>
                 <option value="DIRECTEUR_DR">Directeur DR</option>
                 <option value="DIRECTEUR_SDDR">Directeur SDDR</option>
                 <option value="CHEF_COOPERATIF">Chef Coopératif</option>
@@ -505,54 +300,21 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Nom *</label>
-              <input type="text" [(ngModel)]="formUser.nom" placeholder="Diallo" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Prénom *</label>
-              <input type="text" [(ngModel)]="formUser.prenom" placeholder="Mamadou" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Nom *</label><input type="text" [(ngModel)]="formUser.nom" placeholder="Diallo" class="modal-input"/></div>
+            <div class="form-col"><label>Prénom *</label><input type="text" [(ngModel)]="formUser.prenom" placeholder="Mamadou" class="modal-input"/></div>
           </div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="formUser.email" placeholder="email@agrisuivi.sn" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="formUser.telephone" placeholder="77 000 00 00" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Email</label><input type="email" [(ngModel)]="formUser.email" placeholder="email@agrisuivi.sn" class="modal-input"/></div>
+            <div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="formUser.telephone" placeholder="77 000 00 00" class="modal-input"/></div>
           </div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Adresse</label>
-              <input type="text" [(ngModel)]="formUser.adresse" placeholder="Dakar, Sénégal" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Adresse</label><input type="text" [(ngModel)]="formUser.adresse" placeholder="Dakar, Sénégal" class="modal-input"/></div>
           </div>
-          @if (typeUtilisateur === 'ENQUETEUR_MARCHE') {
-          <div class="form-specific">
-            <div class="form-specific-title">Champs Enquêteur</div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Organisation *</label>
-                <input type="text" [(ngModel)]="formUser.organisation" placeholder="FAO" class="modal-input"/>
-              </div>
-              <div class="form-col">
-                <label>Zone d'affectation *</label>
-                <input type="text" [(ngModel)]="formUser.zoneAffectation" placeholder="Diourbel" class="modal-input"/>
-              </div>
-            </div>
-          </div>
-          }
           @if (typeUtilisateur === 'DIRECTEUR_DR' || typeUtilisateur === 'DIRECTEUR_SDDR') {
           <div class="form-specific">
             <div class="form-specific-title">Champs Directeur</div>
             <div class="form-row">
-              <div class="form-col">
-                <label>Spécialité *</label>
-                <input type="text" [(ngModel)]="formUser.specialite" placeholder="Agriculture" class="modal-input"/>
-              </div>
+              <div class="form-col"><label>Spécialité *</label><input type="text" [(ngModel)]="formUser.specialite" placeholder="Agriculture" class="modal-input"/></div>
               @if (typeUtilisateur === 'DIRECTEUR_DR') {
               <div class="form-col">
                 <label>Service Régional</label>
@@ -584,8 +346,7 @@
             <div class="form-row">
               <div class="form-col">
                 <label>Coopérative *</label>
-                <select class="modal-input"
-                        (change)="onCooperativeChange($any($event.target).value)">
+                <select class="modal-input" (change)="onCooperativeChange($any($event.target).value)">
                   <option value="0">— Sélectionner —</option>
                   @for (c of cooperatives(); track c.idCooperation) {
                   <option [value]="c.idCooperation">{{ c.nomCooperative }}</option>
@@ -599,10 +360,7 @@
           <div class="form-specific">
             <div class="form-specific-title">Champs Agriculteur</div>
             <div class="form-row">
-              <div class="form-col">
-                <label>Années d'expérience</label>
-                <input type="number" [(ngModel)]="formUser.anneeExperience" placeholder="5" class="modal-input"/>
-              </div>
+              <div class="form-col"><label>Années d'expérience</label><input type="number" [(ngModel)]="formUser.anneeExperience" placeholder="5" class="modal-input"/></div>
               <div class="form-col">
                 <label>Niveau instruction</label>
                 <select [(ngModel)]="formUser.niveauInstruction" class="modal-input">
@@ -617,9 +375,7 @@
             <div class="form-row">
               <div class="form-col">
                 <label>Coopérative</label>
-                <!-- AGRICULTEUR -->
-                <select class="modal-input"
-                        (change)="formUser.idCooperative = +$any($event.target).value || null">
+                <select class="modal-input" (change)="formUser.idCooperative = +$any($event.target).value || null">
                   <option value="">— Sélectionner —</option>
                   @for (c of cooperatives(); track c.idCooperation) {
                   <option [value]="c.idCooperation">{{ c.nomCooperative }}</option>
@@ -632,9 +388,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn-annuler" (click)="fermerModalUser()">Annuler</button>
-          <button class="btn-creer" (click)="creerUtilisateur()">
-            <i class="fas fa-check"></i> Créer
-          </button>
+          <button class="btn-creer" (click)="creerUtilisateur()"><i class="fas fa-check"></i> Créer</button>
         </div>
       </div>
     </div>
@@ -646,40 +400,19 @@
       <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span><i class="fas fa-handshake"></i> Créer une coopérative</span>
-          <button class="modal-close" (click)="fermerModalCoop()">
-            <i class="fas fa-times"></i>
-          </button>
+          <button class="modal-close" (click)="fermerModalCoop()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div class="form-row"><div class="form-col"><label>Nom coopérative *</label><input type="text" [(ngModel)]="formCoop.nomCooperative" placeholder="Coopérative agricole de Thiès" class="modal-input"/></div></div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Nom coopérative *</label>
-              <input type="text" [(ngModel)]="formCoop.nomCooperative"
-                     placeholder="Coopérative agricole de Thiès" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Nombre de membres</label><input type="number" [(ngModel)]="formCoop.nombreMembres" placeholder="50" class="modal-input"/></div>
+            <div class="form-col"><label>Date de création</label><input type="date" [(ngModel)]="formCoop.dateCreation" class="modal-input"/></div>
           </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nombre de membres</label>
-              <input type="number" [(ngModel)]="formCoop.nombreMembres" placeholder="50" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Date de création</label>
-              <input type="date" [(ngModel)]="formCoop.dateCreation" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Adresse</label>
-              <input type="text" [(ngModel)]="formCoop.adresse" placeholder="Thiès, Sénégal" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Adresse</label><input type="text" [(ngModel)]="formCoop.adresse" placeholder="Thiès, Sénégal" class="modal-input"/></div></div>
         </div>
         <div class="modal-footer">
           <button class="btn-annuler" (click)="fermerModalCoop()">Annuler</button>
-          <button class="btn-creer" (click)="creerCooperative()">
-            <i class="fas fa-check"></i> Créer
-          </button>
+          <button class="btn-creer" (click)="creerCooperative()"><i class="fas fa-check"></i> Créer</button>
         </div>
       </div>
     </div>
@@ -691,68 +424,29 @@
       <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span><i class="fas fa-user-edit"></i> Modifier — {{ getRoleLabel(userEnEdition.role) }}</span>
-          <button class="modal-close" (click)="fermerModalEditUser()">
-            <i class="fas fa-times"></i>
-          </button>
+          <button class="modal-close" (click)="fermerModalEditUser()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-row">
-            <div class="form-col">
-              <label>Nom *</label>
-              <input type="text" [(ngModel)]="userEnEdition.nom" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Prénom *</label>
-              <input type="text" [(ngModel)]="userEnEdition.prenom" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Nom *</label><input type="text" [(ngModel)]="userEnEdition.nom" class="modal-input"/></div>
+            <div class="form-col"><label>Prénom *</label><input type="text" [(ngModel)]="userEnEdition.prenom" class="modal-input"/></div>
           </div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="userEnEdition.email" class="modal-input" [disabled]="true"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="userEnEdition.telephone" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Email</label><input type="email" [(ngModel)]="userEnEdition.email" class="modal-input" [disabled]="true"/></div>
+            <div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="userEnEdition.telephone" class="modal-input"/></div>
           </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Adresse</label>
-              <input type="text" [(ngModel)]="userEnEdition.adresse" class="modal-input"/>
-            </div>
-          </div>
-          @if (userEnEdition.role === 'ENQUETEUR_MARCHE') {
-          <div class="form-specific">
-            <div class="form-specific-title">Champs Enquêteur</div>
-            <div class="form-row">
-              <div class="form-col">
-                <label>Organisation *</label>
-                <input type="text" [(ngModel)]="userEnEdition.organisation" class="modal-input"/>
-              </div>
-              <div class="form-col">
-                <label>Zone d'affectation *</label>
-                <input type="text" [(ngModel)]="userEnEdition.zoneAffectation" class="modal-input"/>
-              </div>
-            </div>
-          </div>
-          }
+          <div class="form-row"><div class="form-col"><label>Adresse</label><input type="text" [(ngModel)]="userEnEdition.adresse" class="modal-input"/></div></div>
           @if (userEnEdition.role === 'DIRECTEUR_DR' || userEnEdition.role === 'DIRECTEUR_SDDR') {
           <div class="form-specific">
             <div class="form-specific-title">Champs Directeur</div>
             <div class="form-row">
-              <div class="form-col">
-                <label>Spécialité *</label>
-                <input type="text" [(ngModel)]="userEnEdition.specialite" class="modal-input"/>
-              </div>
+              <div class="form-col"><label>Spécialité *</label><input type="text" [(ngModel)]="userEnEdition.specialite" class="modal-input"/></div>
               @if (userEnEdition.role === 'DIRECTEUR_DR') {
               <div class="form-col">
                 <label>Service Régional</label>
                 <select [(ngModel)]="userEnEdition.idServiceRegional" class="modal-input">
                   <option [value]="null">— Sélectionner —</option>
-                  @for (s of servicesRegionaux(); track s.idService) {
-                  <option [value]="s.idService">{{ s.nomService }}</option>
-                  }
+                  @for (s of servicesRegionaux(); track s.idService) {<option [value]="s.idService">{{ s.nomService }}</option>}
                 </select>
               </div>
               }
@@ -761,9 +455,7 @@
                 <label>Service Départemental</label>
                 <select [(ngModel)]="userEnEdition.idServiceDepartementale" class="modal-input">
                   <option [value]="null">— Sélectionner —</option>
-                  @for (s of servicesDepartementaux(); track s.idService) {
-                  <option [value]="s.idService">{{ s.nomService }}</option>
-                  }
+                  @for (s of servicesDepartementaux(); track s.idService) {<option [value]="s.idService">{{ s.nomService }}</option>}
                 </select>
               </div>
               }
@@ -778,9 +470,7 @@
                 <label>Coopérative</label>
                 <select [(ngModel)]="userEnEdition.idCooperative" class="modal-input">
                   <option [value]="null">— Sélectionner —</option>
-                  @for (c of cooperatives(); track c.idCooperative) {
-                  <option [value]="c.idCooperative">{{ c.nomCooperative }}</option>
-                  }
+                  @for (c of cooperatives(); track c.idCooperative) {<option [value]="c.idCooperative">{{ c.nomCooperative }}</option>}
                 </select>
               </div>
             </div>
@@ -790,10 +480,7 @@
           <div class="form-specific">
             <div class="form-specific-title">Champs Agriculteur</div>
             <div class="form-row">
-              <div class="form-col">
-                <label>Années d'expérience</label>
-                <input type="number" [(ngModel)]="userEnEdition.anneeExperience" class="modal-input"/>
-              </div>
+              <div class="form-col"><label>Années d'expérience</label><input type="number" [(ngModel)]="userEnEdition.anneeExperience" class="modal-input"/></div>
               <div class="form-col">
                 <label>Niveau instruction</label>
                 <select [(ngModel)]="userEnEdition.niveauInstruction" class="modal-input">
@@ -810,9 +497,7 @@
                 <label>Coopérative</label>
                 <select [(ngModel)]="userEnEdition.idCooperative" class="modal-input">
                   <option [value]="null">— Sélectionner —</option>
-                  @for (c of cooperatives(); track c.idCooperative) {
-                  <option [value]="c.idCooperative">{{ c.nomCooperative }}</option>
-                  }
+                  @for (c of cooperatives(); track c.idCooperative) {<option [value]="c.idCooperative">{{ c.nomCooperative }}</option>}
                 </select>
               </div>
             </div>
@@ -821,9 +506,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn-annuler" (click)="fermerModalEditUser()">Annuler</button>
-          <button class="btn-creer" (click)="modifierUtilisateur()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
+          <button class="btn-creer" (click)="modifierUtilisateur()"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
       </div>
     </div>
@@ -835,39 +518,19 @@
       <div class="modal-box" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span><i class="fas fa-edit"></i> Modifier coopérative</span>
-          <button class="modal-close" (click)="fermerModalEditCoop()">
-            <i class="fas fa-times"></i>
-          </button>
+          <button class="modal-close" (click)="fermerModalEditCoop()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div class="form-row"><div class="form-col"><label>Nom coopérative *</label><input type="text" [(ngModel)]="coopEnEdition.nomCooperative" class="modal-input"/></div></div>
           <div class="form-row">
-            <div class="form-col">
-              <label>Nom coopérative *</label>
-              <input type="text" [(ngModel)]="coopEnEdition.nomCooperative" class="modal-input"/>
-            </div>
+            <div class="form-col"><label>Nombre de membres</label><input type="number" [(ngModel)]="coopEnEdition.nombreMembres" class="modal-input"/></div>
+            <div class="form-col"><label>Date de création</label><input type="date" [(ngModel)]="coopEnEdition.dateCreation" class="modal-input"/></div>
           </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nombre de membres</label>
-              <input type="number" [(ngModel)]="coopEnEdition.nombreMembres" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Date de création</label>
-              <input type="date" [(ngModel)]="coopEnEdition.dateCreation" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Adresse</label>
-              <input type="text" [(ngModel)]="coopEnEdition.adresse" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Adresse</label><input type="text" [(ngModel)]="coopEnEdition.adresse" class="modal-input"/></div></div>
         </div>
         <div class="modal-footer">
           <button class="btn-annuler" (click)="fermerModalEditCoop()">Annuler</button>
-          <button class="btn-creer" (click)="modifierCooperative()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
+          <button class="btn-creer" (click)="modifierCooperative()"><i class="fas fa-save"></i> Sauvegarder</button>
         </div>
       </div>
     </div>
@@ -879,152 +542,63 @@
       <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:480px">
         <div class="modal-header">
           <span><i class="fas fa-user"></i> Fiche utilisateur</span>
-          <button class="modal-close" (click)="fermerModalVoir()">
-            <i class="fas fa-times"></i>
-          </button>
+          <button class="modal-close" (click)="fermerModalVoir()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
           <div style="display:flex;align-items:center;gap:16px;padding:10px 0 16px;border-bottom:0.5px solid #f0f0f0">
-            <div class="avatar-lg" [style.background]="getAvatarColor(userVu.nom)">
-              {{ userVu.nom?.charAt(0) }}{{ userVu.prenom?.charAt(0) }}
-            </div>
+            <div class="avatar-lg" [style.background]="getAvatarColor(userVu.nom)">{{ userVu.nom?.charAt(0) }}{{ userVu.prenom?.charAt(0) }}</div>
             <div>
-              <div style="font-size:18px;font-weight:800;color:#0a3d0a">
-                {{ userVu.nom }} {{ userVu.prenom }}
-              </div>
-              <span [class]="'badge ' + getRoleBadge(userVu.role)">
-                  {{ getRoleLabel(userVu.role) }}
-                </span>
+              <div style="font-size:18px;font-weight:800;color:#0a3d0a">{{ userVu.nom }} {{ userVu.prenom }}</div>
+              <span [class]="'badge ' + getRoleBadge(userVu.role)">{{ getRoleLabel(userVu.role) }}</span>
             </div>
           </div>
           <div class="fiche-section">
             <div class="fiche-title">Informations générales</div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-envelope"></i> Email</span>
-              <span class="fiche-val">{{ userVu.email || '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-phone"></i> Téléphone</span>
-              <span class="fiche-val">{{ userVu.telephone || '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-map-marker-alt"></i> Adresse</span>
-              <span class="fiche-val">{{ userVu.adresse || '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-circle"></i> Statut</span>
-              <span [class]="userVu.actif ? 'pill-actif' : 'pill-inactif'">
-                  {{ userVu.actif ? 'Actif' : 'Inactif' }}
-                </span>
-            </div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-envelope"></i> Email</span><span class="fiche-val">{{ userVu.email || '—' }}</span></div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-phone"></i> Téléphone</span><span class="fiche-val">{{ userVu.telephone || '—' }}</span></div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-map-marker-alt"></i> Adresse</span><span class="fiche-val">{{ userVu.adresse || '—' }}</span></div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-circle"></i> Statut</span><span [class]="userVu.actif ? 'pill-actif' : 'pill-inactif'">{{ userVu.actif ? 'Actif' : 'Inactif' }}</span></div>
           </div>
-          @if (userVu.role === 'ENQUETEUR_MARCHE') {
-          <div class="fiche-section">
-            <div class="fiche-title">Informations Enquêteur</div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-building"></i> Organisation</span>
-              <span class="fiche-val">{{ userVu.organisation || '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-map"></i> Zone</span>
-              <span class="fiche-val">{{ userVu.zoneAffectation || '—' }}</span>
-            </div>
-          </div>
-          }
           @if (userVu.role === 'DIRECTEUR_DR' || userVu.role === 'DIRECTEUR_SDDR') {
           <div class="fiche-section">
             <div class="fiche-title">Informations Directeur</div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-star"></i> Spécialité</span>
-              <span class="fiche-val">{{ userVu.specialite || '—' }}</span>
-            </div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-star"></i> Spécialité</span><span class="fiche-val">{{ userVu.specialite || '—' }}</span></div>
           </div>
           }
           @if (userVu.role === 'CHEF_COOPERATIF') {
           <div class="fiche-section">
             <div class="fiche-title">Informations Chef Coopératif</div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-handshake"></i> Coopérative</span>
-              <span class="fiche-val">{{ userVu.nomCooperative || '—' }}</span>
-            </div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-handshake"></i> Coopérative</span><span class="fiche-val">{{ userVu.nomCooperative || '—' }}</span></div>
           </div>
           }
           @if (userVu.role === 'AGRICULTEUR') {
           <div class="fiche-section">
             <div class="fiche-title">Informations Agriculteur</div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-calendar"></i> Expérience</span>
-              <span class="fiche-val">{{ userVu.anneeExperience ? userVu.anneeExperience + ' ans' : '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-graduation-cap"></i> Niveau</span>
-              <span class="fiche-val">{{ userVu.niveauInstruction || '—' }}</span>
-            </div>
-            <div class="fiche-row">
-              <span class="fiche-label"><i class="fas fa-handshake"></i> Coopérative</span>
-              <span class="fiche-val">{{ userVu.nomCooperative || '—' }}</span>
-            </div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-calendar"></i> Expérience</span><span class="fiche-val">{{ userVu.anneeExperience ? userVu.anneeExperience + ' ans' : '—' }}</span></div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-graduation-cap"></i> Niveau</span><span class="fiche-val">{{ userVu.niveauInstruction || '—' }}</span></div>
+            <div class="fiche-row"><span class="fiche-label"><i class="fas fa-handshake"></i> Coopérative</span><span class="fiche-val">{{ userVu.nomCooperative || '—' }}</span></div>
           </div>
           }
         </div>
         <div class="modal-footer">
           <button class="btn-annuler" (click)="fermerModalVoir()">Fermer</button>
-          <button class="btn-creer" (click)="fermerModalVoir(); ouvrirModalEditUser(userVu)">
-            <i class="fas fa-pen"></i> Modifier
-          </button>
+          <button class="btn-creer" (click)="fermerModalVoir(); ouvrirModalEditUser(userVu)"><i class="fas fa-pen"></i> Modifier</button>
         </div>
       </div>
     </div>
     }
+
     <!-- ══ MODAL CRÉER RÉGION ══ -->
     @if (showModalRegion) {
     <div class="modal-overlay" (click)="fermerModalRegion()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-globe-africa"></i> Créer une région</span>
-          <button class="modal-close" (click)="fermerModalRegion()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-globe-africa"></i> Créer une région</span><button class="modal-close" (click)="fermerModalRegion()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom région *</label>
-              <input type="text" [(ngModel)]="formRegion.nomRegion"
-                     placeholder="Thiès" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Population</label>
-              <input type="number" [(ngModel)]="formRegion.population"
-                     placeholder="1800000" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Superficie (km²)</label>
-              <input type="number" [(ngModel)]="formRegion.superficie"
-                     placeholder="6601" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Latitude</label>
-              <input type="number" [(ngModel)]="formRegion.latitude"
-                     placeholder="14.7833" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Longitude</label>
-              <input type="number" [(ngModel)]="formRegion.longitude"
-                     placeholder="-16.9167" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom région *</label><input type="text" [(ngModel)]="formRegion.nomRegion" placeholder="Thiès" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Population</label><input type="number" [(ngModel)]="formRegion.population" placeholder="1800000" class="modal-input"/></div><div class="form-col"><label>Superficie (km²)</label><input type="number" [(ngModel)]="formRegion.superficie" placeholder="6601" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Latitude</label><input type="number" [(ngModel)]="formRegion.latitude" placeholder="14.7833" class="modal-input"/></div><div class="form-col"><label>Longitude</label><input type="number" [(ngModel)]="formRegion.longitude" placeholder="-16.9167" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalRegion()">Annuler</button>
-          <button class="btn-creer" (click)="creerRegion()">
-            <i class="fas fa-check"></i> Créer
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalRegion()">Annuler</button><button class="btn-creer" (click)="creerRegion()"><i class="fas fa-check"></i> Créer</button></div>
       </div>
     </div>
     }
@@ -1033,51 +607,13 @@
     @if (showModalEditRegion && regionEnEdition) {
     <div class="modal-overlay" (click)="fermerModalEditRegion()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-globe-africa"></i> Modifier région</span>
-          <button class="modal-close" (click)="fermerModalEditRegion()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-globe-africa"></i> Modifier région</span><button class="modal-close" (click)="fermerModalEditRegion()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom région *</label>
-              <input type="text" [(ngModel)]="regionEnEdition.nomRegion"
-                     class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Population</label>
-              <input type="number" [(ngModel)]="regionEnEdition.population"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Superficie (km²)</label>
-              <input type="number" [(ngModel)]="regionEnEdition.superficie"
-                     class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Latitude</label>
-              <input type="number" [(ngModel)]="regionEnEdition.latitude"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Longitude</label>
-              <input type="number" [(ngModel)]="regionEnEdition.longitude"
-                     class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom région *</label><input type="text" [(ngModel)]="regionEnEdition.nomRegion" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Population</label><input type="number" [(ngModel)]="regionEnEdition.population" class="modal-input"/></div><div class="form-col"><label>Superficie (km²)</label><input type="number" [(ngModel)]="regionEnEdition.superficie" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Latitude</label><input type="number" [(ngModel)]="regionEnEdition.latitude" class="modal-input"/></div><div class="form-col"><label>Longitude</label><input type="number" [(ngModel)]="regionEnEdition.longitude" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalEditRegion()">Annuler</button>
-          <button class="btn-creer" (click)="modifierRegion()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalEditRegion()">Annuler</button><button class="btn-creer" (click)="modifierRegion()"><i class="fas fa-save"></i> Sauvegarder</button></div>
       </div>
     </div>
     }
@@ -1086,60 +622,13 @@
     @if (showModalDepartement) {
     <div class="modal-overlay" (click)="fermerModalDepartement()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-map"></i> Créer un département</span>
-          <button class="modal-close" (click)="fermerModalDepartement()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-map"></i> Créer un département</span><button class="modal-close" (click)="fermerModalDepartement()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom département *</label>
-              <input type="text" [(ngModel)]="formDepartement.nomDepartement"
-                     placeholder="Mbour" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Région *</label>
-              <select [(ngModel)]="formDepartement.idRegion" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (r of regions(); track r.idRegion) {
-                <option [value]="r.idRegion">{{ r.nomRegion }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Population</label>
-              <input type="number" [(ngModel)]="formDepartement.population"
-                     placeholder="500000" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Superficie (km²)</label>
-              <input type="number" [(ngModel)]="formDepartement.superficie"
-                     placeholder="1200" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Latitude</label>
-              <input type="number" [(ngModel)]="formDepartement.latitude"
-                     placeholder="14.4167" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Longitude</label>
-              <input type="number" [(ngModel)]="formDepartement.longitude"
-                     placeholder="-16.9667" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom département *</label><input type="text" [(ngModel)]="formDepartement.nomDepartement" placeholder="Mbour" class="modal-input"/></div><div class="form-col"><label>Région *</label><select [(ngModel)]="formDepartement.idRegion" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (r of regions(); track r.idRegion) {<option [value]="r.idRegion">{{ r.nomRegion }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Population</label><input type="number" [(ngModel)]="formDepartement.population" placeholder="500000" class="modal-input"/></div><div class="form-col"><label>Superficie (km²)</label><input type="number" [(ngModel)]="formDepartement.superficie" placeholder="1200" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Latitude</label><input type="number" [(ngModel)]="formDepartement.latitude" placeholder="14.4167" class="modal-input"/></div><div class="form-col"><label>Longitude</label><input type="number" [(ngModel)]="formDepartement.longitude" placeholder="-16.9667" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalDepartement()">Annuler</button>
-          <button class="btn-creer" (click)="creerDepartement()">
-            <i class="fas fa-check"></i> Créer
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalDepartement()">Annuler</button><button class="btn-creer" (click)="creerDepartement()"><i class="fas fa-check"></i> Créer</button></div>
       </div>
     </div>
     }
@@ -1148,60 +637,13 @@
     @if (showModalEditDepartement && departementEnEdition) {
     <div class="modal-overlay" (click)="fermerModalEditDepartement()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-map"></i> Modifier département</span>
-          <button class="modal-close" (click)="fermerModalEditDepartement()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-map"></i> Modifier département</span><button class="modal-close" (click)="fermerModalEditDepartement()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom département *</label>
-              <input type="text" [(ngModel)]="departementEnEdition.nomDepartement"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Région *</label>
-              <select [(ngModel)]="departementEnEdition.idRegion" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (r of regions(); track r.idRegion) {
-                <option [value]="r.idRegion">{{ r.nomRegion }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Population</label>
-              <input type="number" [(ngModel)]="departementEnEdition.population"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Superficie (km²)</label>
-              <input type="number" [(ngModel)]="departementEnEdition.superficie"
-                     class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Latitude</label>
-              <input type="number" [(ngModel)]="departementEnEdition.latitude"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Longitude</label>
-              <input type="number" [(ngModel)]="departementEnEdition.longitude"
-                     class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom département *</label><input type="text" [(ngModel)]="departementEnEdition.nomDepartement" class="modal-input"/></div><div class="form-col"><label>Région *</label><select [(ngModel)]="departementEnEdition.idRegion" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (r of regions(); track r.idRegion) {<option [value]="r.idRegion">{{ r.nomRegion }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Population</label><input type="number" [(ngModel)]="departementEnEdition.population" class="modal-input"/></div><div class="form-col"><label>Superficie (km²)</label><input type="number" [(ngModel)]="departementEnEdition.superficie" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Latitude</label><input type="number" [(ngModel)]="departementEnEdition.latitude" class="modal-input"/></div><div class="form-col"><label>Longitude</label><input type="number" [(ngModel)]="departementEnEdition.longitude" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalEditDepartement()">Annuler</button>
-          <button class="btn-creer" (click)="modifierDepartement()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalEditDepartement()">Annuler</button><button class="btn-creer" (click)="modifierDepartement()"><i class="fas fa-save"></i> Sauvegarder</button></div>
       </div>
     </div>
     }
@@ -1210,56 +652,13 @@
     @if (showModalServiceReg) {
     <div class="modal-overlay" (click)="fermerModalServiceReg()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-building"></i> Créer un service régional</span>
-          <button class="modal-close" (click)="fermerModalServiceReg()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-building"></i> Créer un service régional</span><button class="modal-close" (click)="fermerModalServiceReg()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom service *</label>
-              <input type="text" [(ngModel)]="formServiceReg.nomService"
-                     placeholder="Service Régional Agriculture Thiès"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Région *</label>
-              <select [(ngModel)]="formServiceReg.idRegion" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (r of regions(); track r.idRegion) {
-                <option [value]="r.idRegion">{{ r.nomRegion }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Localité</label>
-              <input type="text" [(ngModel)]="formServiceReg.localite"
-                     placeholder="Thiès" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="formServiceReg.telephoneService"
-                     placeholder="33 951 00 00" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="formServiceReg.emailService"
-                     placeholder="service@agrisuivi.sn" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom service *</label><input type="text" [(ngModel)]="formServiceReg.nomService" placeholder="Service Régional Agriculture Thiès" class="modal-input"/></div><div class="form-col"><label>Région *</label><select [(ngModel)]="formServiceReg.idRegion" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (r of regions(); track r.idRegion) {<option [value]="r.idRegion">{{ r.nomRegion }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Localité</label><input type="text" [(ngModel)]="formServiceReg.localite" placeholder="Thiès" class="modal-input"/></div><div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="formServiceReg.telephoneService" placeholder="33 951 00 00" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Email</label><input type="email" [(ngModel)]="formServiceReg.emailService" placeholder="service@agrisuivi.sn" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalServiceReg()">Annuler</button>
-          <button class="btn-creer" (click)="creerServiceReg()">
-            <i class="fas fa-check"></i> Créer
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalServiceReg()">Annuler</button><button class="btn-creer" (click)="creerServiceReg()"><i class="fas fa-check"></i> Créer</button></div>
       </div>
     </div>
     }
@@ -1268,55 +667,13 @@
     @if (showModalEditServiceReg && serviceRegEnEdition) {
     <div class="modal-overlay" (click)="fermerModalEditServiceReg()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-building"></i> Modifier service régional</span>
-          <button class="modal-close" (click)="fermerModalEditServiceReg()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-building"></i> Modifier service régional</span><button class="modal-close" (click)="fermerModalEditServiceReg()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom service *</label>
-              <input type="text" [(ngModel)]="serviceRegEnEdition.nomService"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Région</label>
-              <select [(ngModel)]="serviceRegEnEdition.idRegion" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (r of regions(); track r.idRegion) {
-                <option [value]="r.idRegion">{{ r.nomRegion }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Localité</label>
-              <input type="text" [(ngModel)]="serviceRegEnEdition.localite"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="serviceRegEnEdition.telephoneService"
-                     class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="serviceRegEnEdition.emailService"
-                     class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom service *</label><input type="text" [(ngModel)]="serviceRegEnEdition.nomService" class="modal-input"/></div><div class="form-col"><label>Région</label><select [(ngModel)]="serviceRegEnEdition.idRegion" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (r of regions(); track r.idRegion) {<option [value]="r.idRegion">{{ r.nomRegion }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Localité</label><input type="text" [(ngModel)]="serviceRegEnEdition.localite" class="modal-input"/></div><div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="serviceRegEnEdition.telephoneService" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Email</label><input type="email" [(ngModel)]="serviceRegEnEdition.emailService" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalEditServiceReg()">Annuler</button>
-          <button class="btn-creer" (click)="modifierServiceReg()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalEditServiceReg()">Annuler</button><button class="btn-creer" (click)="modifierServiceReg()"><i class="fas fa-save"></i> Sauvegarder</button></div>
       </div>
     </div>
     }
@@ -1325,55 +682,13 @@
     @if (showModalServiceDep) {
     <div class="modal-overlay" (click)="fermerModalServiceDep()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-city"></i> Créer un service départemental</span>
-          <button class="modal-close" (click)="fermerModalServiceDep()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-city"></i> Créer un service départemental</span><button class="modal-close" (click)="fermerModalServiceDep()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom service *</label>
-              <input type="text" [(ngModel)]="formServiceDep.nomService"
-                     placeholder="SDDR Mbour" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Département *</label>
-              <select [(ngModel)]="formServiceDep.idDepartement" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (d of departements(); track d.idDepartement) {
-                <option [value]="d.idDepartement">{{ d.nomDepartement }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Localité</label>
-              <input type="text" [(ngModel)]="formServiceDep.localite"
-                     placeholder="Mbour" class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="formServiceDep.telephoneService"
-                     placeholder="33 957 00 00" class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="formServiceDep.emailService"
-                     placeholder="sddr@agrisuivi.sn" class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom service *</label><input type="text" [(ngModel)]="formServiceDep.nomService" placeholder="SDDR Mbour" class="modal-input"/></div><div class="form-col"><label>Département *</label><select [(ngModel)]="formServiceDep.idDepartement" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (d of departements(); track d.idDepartement) {<option [value]="d.idDepartement">{{ d.nomDepartement }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Localité</label><input type="text" [(ngModel)]="formServiceDep.localite" placeholder="Mbour" class="modal-input"/></div><div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="formServiceDep.telephoneService" placeholder="33 957 00 00" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Email</label><input type="email" [(ngModel)]="formServiceDep.emailService" placeholder="sddr@agrisuivi.sn" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalServiceDep()">Annuler</button>
-          <button class="btn-creer" (click)="creerServiceDep()">
-            <i class="fas fa-check"></i> Créer
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalServiceDep()">Annuler</button><button class="btn-creer" (click)="creerServiceDep()"><i class="fas fa-check"></i> Créer</button></div>
       </div>
     </div>
     }
@@ -1382,57 +697,16 @@
     @if (showModalEditServiceDep && serviceDepEnEdition) {
     <div class="modal-overlay" (click)="fermerModalEditServiceDep()">
       <div class="modal-box" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span><i class="fas fa-city"></i> Modifier service départemental</span>
-          <button class="modal-close" (click)="fermerModalEditServiceDep()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+        <div class="modal-header"><span><i class="fas fa-city"></i> Modifier service départemental</span><button class="modal-close" (click)="fermerModalEditServiceDep()"><i class="fas fa-times"></i></button></div>
         <div class="modal-body">
-          <div class="form-row">
-            <div class="form-col">
-              <label>Nom service *</label>
-              <input type="text" [(ngModel)]="serviceDepEnEdition.nomService"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Département</label>
-              <select [(ngModel)]="serviceDepEnEdition.idDepartement" class="modal-input">
-                <option [value]="null">— Sélectionner —</option>
-                @for (d of departements(); track d.idDepartement) {
-                <option [value]="d.idDepartement">{{ d.nomDepartement }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Localité</label>
-              <input type="text" [(ngModel)]="serviceDepEnEdition.localite"
-                     class="modal-input"/>
-            </div>
-            <div class="form-col">
-              <label>Téléphone</label>
-              <input type="text" [(ngModel)]="serviceDepEnEdition.telephoneService"
-                     class="modal-input"/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-col">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="serviceDepEnEdition.emailService"
-                     class="modal-input"/>
-            </div>
-          </div>
+          <div class="form-row"><div class="form-col"><label>Nom service *</label><input type="text" [(ngModel)]="serviceDepEnEdition.nomService" class="modal-input"/></div><div class="form-col"><label>Département</label><select [(ngModel)]="serviceDepEnEdition.idDepartement" class="modal-input"><option [value]="null">— Sélectionner —</option>@for (d of departements(); track d.idDepartement) {<option [value]="d.idDepartement">{{ d.nomDepartement }}</option>}</select></div></div>
+          <div class="form-row"><div class="form-col"><label>Localité</label><input type="text" [(ngModel)]="serviceDepEnEdition.localite" class="modal-input"/></div><div class="form-col"><label>Téléphone</label><input type="text" [(ngModel)]="serviceDepEnEdition.telephoneService" class="modal-input"/></div></div>
+          <div class="form-row"><div class="form-col"><label>Email</label><input type="email" [(ngModel)]="serviceDepEnEdition.emailService" class="modal-input"/></div></div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-annuler" (click)="fermerModalEditServiceDep()">Annuler</button>
-          <button class="btn-creer" (click)="modifierServiceDep()">
-            <i class="fas fa-save"></i> Sauvegarder
-          </button>
-        </div>
+        <div class="modal-footer"><button class="btn-annuler" (click)="fermerModalEditServiceDep()">Annuler</button><button class="btn-creer" (click)="modifierServiceDep()"><i class="fas fa-save"></i> Sauvegarder</button></div>
       </div>
     </div>
     }
+
   </main>
 </div>

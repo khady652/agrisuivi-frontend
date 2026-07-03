@@ -94,6 +94,7 @@ export class DashboardChefCooperatif implements OnInit {
     adresse: '', anneeExperience: 0, niveauInstruction: ''
   };
 
+
   constructor(
     private http: HttpClient,
     private router: Router
@@ -285,6 +286,29 @@ modifierProfil() {
             this.showFormProfil = false;
             this.showProfilPopup = false;
             this.profilAModifier = null;
+        },
+        error: () => {}
+    });
+}
+showFormCooperative = false;
+formCooperative = {
+    nomCooperative: '',
+    adresse: '',
+    nombreMembres: null,
+    dateCreation: ''
+};
+
+creerCooperative() {
+    if (!this.formCooperative.nomCooperative) return;
+    this.http.post(
+        `${this.apiUrl}/api/users/cooperatives`,
+        this.formCooperative,
+        { headers: this.getHeaders() }
+    ).subscribe({
+        next: () => {
+            this.showFormCooperative = false;
+            this.chargerProfil();
+            this.formCooperative = { nomCooperative: '', adresse: '', nombreMembres: null, dateCreation: '' };
         },
         error: () => {}
     });
